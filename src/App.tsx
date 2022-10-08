@@ -1,11 +1,10 @@
 import React, { useMemo } from "react";
 import Icon from "@mdi/react";
 import "./App.css";
-import { mdiPencil } from "@mdi/js";
+import { mdiPencil, mdiMenu } from "@mdi/js";
 import AppContainer from "./containers/app";
 import { MNSProfileCard } from "./components/MyobuNameServices";
 import FeedsContainer from "./containers/feeds";
-import Masonry from "react-masonry-component";
 
 function App() {
   const appContainer = AppContainer.useContainer();
@@ -15,7 +14,7 @@ function App() {
     return feedsContainer.feeds.map((feed) => {
       if (feed.type === "mns") {
         return (
-          <div key={feed.props._id} className={"m-2"}>
+          <div key={feed.props._id} className={"mb-2 sm:m-2"}>
             <MNSProfileCard
               labels={["MNS"]}
               profile={feed.props}
@@ -30,10 +29,13 @@ function App() {
 
   return (
     <div className="App">
-      <div className="navbar bg-neutral text-neutral-content">
+      <div className="navbar sticky top-0 z-20 bg-neutral text-neutral-content">
         <div className="flex-1">
           {" "}
-          <a className="btn btn-ghost normal-case text-xl" href="/">
+          <a
+            className="btn btn-ghost normal-case text-xl hidden sm:block"
+            href="/"
+          >
             REALM
           </a>
         </div>
@@ -60,42 +62,54 @@ function App() {
               Connect Wallet
             </button>
           )}
+          <div className="ml-2">
+            <label
+              htmlFor="my-drawer"
+              className="btn btn-info drawer-button lg:hidden"
+            >
+              <Icon path={mdiMenu} size={1}></Icon>
+            </label>
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        {/* left panel */}
-        <div className="col-span-1 px-4 pt-14">
-          {appContainer.signerProfile ? (
-            <div>
-              <MNSProfileCard
-                labels={["MNS"]}
-                profile={appContainer.signerProfile}
-              ></MNSProfileCard>
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="blur-sm mx-auto">
+      <div className="drawer drawer-mobile">
+        <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-content pt-2 px-0 sm:pt-12 sm:px-2">
+          {/** right panel */}
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center sm:justify-start">
+            {feedElements}
+          </div>
+        </div>
+        <div className="drawer-side z-10">
+          <label htmlFor="my-drawer" className="drawer-overlay"></label>
+          {/* left panel */}
+          <div className="px-0 sm:px-4 pt-2 sm:pt-14 bg-gray-800">
+            {appContainer.signerProfile ? (
+              <div>
                 <MNSProfileCard
                   labels={["MNS"]}
-                  profile={{
-                    name: "mns",
-                    displayName: "Myobu Name Service",
-                  }}
+                  profile={appContainer.signerProfile}
                 ></MNSProfileCard>
               </div>
-              <a
-                href="https://protocol.myobu.io/#/mns"
-                className="btn btn-secondary absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              >
-                Register for your account
-              </a>
-            </div>
-          )}
-        </div>
-        {/* right panel */}
-        <div className="col-span-2 px-4 py-12">
-          <div className="flex flex-row flex-wrap justify-start">
-            {feedElements}
+            ) : (
+              <div className="relative">
+                <div className="blur-sm mx-auto">
+                  <MNSProfileCard
+                    labels={["MNS"]}
+                    profile={{
+                      name: "mns",
+                      displayName: "Myobu Name Service",
+                    }}
+                  ></MNSProfileCard>
+                </div>
+                <a
+                  href="https://protocol.myobu.io/#/mns"
+                  className="btn btn-secondary absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                  Register for your account
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
