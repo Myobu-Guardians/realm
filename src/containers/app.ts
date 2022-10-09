@@ -3,7 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import MyobuProtocolClient from "myobu-protocol-client";
 import { MNSProfile } from "../lib/types";
-const IpfsApi = require("ipfs-api");
+import { NFTStorage } from "nft.storage";
+
+interface ArweaveAddArgs {
+  content: string;
+  onIpfsUploaded?: (ipfsHash: string) => void;
+  onArweaveUploaded?: (arweaveHash: string) => void;
+}
 
 const AppContainer = createContainer(() => {
   const [client, setClient] = useState<MyobuProtocolClient | undefined>(
@@ -16,41 +22,54 @@ const AppContainer = createContainer(() => {
   const [signerProfile, setSignerProfile] = useState<MNSProfile | undefined>(
     undefined
   );
-  const [ipfsApi] = useState<any>(
-    IpfsApi({
-      host: "ipfs.infura.io",
-      port: 5001,
-      protocol: "https",
+  const [nftStorageClient] = useState(
+    new NFTStorage({
+      token: process.env.REACT_APP_NFTSTORAGE_TOKEN || "",
     })
   );
 
   const ipfsAdd = useCallback(
-    async (content: string) => {
-      return (await ipfsApi.files.add(Buffer.from(content)))[0];
+    async (content: string): Promise<string> => {
+      return await nftStorageClient.storeBlob(new Blob([content]));
     },
-    [ipfsApi]
+    [nftStorageClient]
   );
 
-  const ipfsCat = useCallback(
-    (ipfsHash: string) => {
-      return new Promise((resolve, reject) => {
-        let timeout = setTimeout(() => {
-          return reject(`timeout: https://ipfs.infura.io/ipfs/${ipfsHash}`);
-        }, 5000);
-
-        ipfsApi.files.cat(ipfsHash, (error: any, file: any) => {
-          clearTimeout(timeout);
-          if (error) {
-            return reject(error);
-          } else {
-            const content = file.toString("utf8");
-            return resolve(content);
-          }
-        });
+  const arweaveAdd = useCallback(
+    async (
+      args: ArweaveAddArgs
+    ): Promise<{
+      ipfsHash: string;
+      arweaveId: string;
+    }> => {
+      const ipfsHash = await nftStorageClient.storeBlob(
+        new Blob([args.content])
+      );
+      if (args.onIpfsUploaded) {
+        args.onIpfsUploaded(ipfsHash);
+      }
+      // TODO: Only images are supported
+      const res = await fetch(`https://ipfs2arweave.com/permapin/${ipfsHash}`, {
+        method: "POST",
       });
+      const json = await res.json();
+      if (args.onArweaveUploaded) {
+        args.onArweaveUploaded(json.arweaveId);
+      }
+      return { ipfsHash, arweaveId: json.arweaveId };
     },
-    [ipfsApi]
+    [nftStorageClient]
   );
+
+  /**
+   * Get content from IPFS hash
+   */
+  const ipfsCat = useCallback(async (ipfsHash: string) => {
+    const res = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`, {
+      method: "GET",
+    });
+    return await res.text();
+  }, []);
 
   const connectToMetaMask = useCallback(async () => {
     const ethereum = (window as any)["ethereum"];
@@ -119,10 +138,10 @@ const AppContainer = createContainer(() => {
     signer,
     signerAddress,
     signerProfile,
-    ipfsApi,
     connectToMetaMask,
     ipfsAdd,
     ipfsCat,
+    arweaveAdd,
   };
 });
 

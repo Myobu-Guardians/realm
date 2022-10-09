@@ -1,12 +1,38 @@
 import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { MNSProfile } from "../lib/types";
+import { MNSProfile, RealmNote } from "../lib/types";
 import AppContainer from "./app";
 
 const FeedsContainer = createContainer(() => {
   const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[]>([]);
   const appContainer = AppContainer.useContainer();
+
+  const publishNote = useCallback(
+    async (note: RealmNote) => {
+      if (appContainer.client) {
+        const result = await appContainer.client.db({
+          create: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                summary: note.summary,
+                images: note.images,
+                ipfsHash: note.ipfsHash,
+                arweaveId: note.arweaveId || "",
+              },
+            },
+          ],
+          return: ["note"],
+        });
+        console.log(result);
+      } else {
+        throw new Error("Client is not ready");
+      }
+    },
+    [appContainer.client]
+  );
 
   useEffect(() => {
     if (appContainer.client) {
@@ -41,6 +67,7 @@ const FeedsContainer = createContainer(() => {
 
   return {
     mnsProfiles,
+    publishNote,
   };
 });
 

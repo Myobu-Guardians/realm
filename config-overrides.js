@@ -11,9 +11,9 @@ module.exports = override(
       https: require.resolve("https-browserify"),
       os: require.resolve("os-browserify/browser"),
       path: require.resolve("path-browserify"),
-      stream: require.resolve("stream-browserify"),
       url: require.resolve("url/"),
       util: require.resolve("util/"),
+      "process/browser": require.resolve("process/browser"),
     },
   }),
   addWebpackPlugin(

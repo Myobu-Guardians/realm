@@ -1,5 +1,7 @@
 // TODO: Maybe put this interface into the myobu-protocol-client library
 
+import { Summary } from "./note";
+
 export interface NodeBase {
   _id?: string;
   _updatedAt?: number;
@@ -34,9 +36,7 @@ export interface MNSProfile extends NodeBase {
   btc?: string;
 }
 
-export interface RealmNote extends NodeBase {
-  summary: string;
-  images: string[];
-  ipfs: string;
-  arweave: string;
+export interface RealmNote extends NodeBase, Summary {
+  ipfsHash: string;
+  arweaveId?: string;
 }

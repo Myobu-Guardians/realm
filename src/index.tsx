@@ -6,6 +6,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import AppContainer from "./containers/app";
 import FeedsContainer from "./containers/feeds";
+import "toastr/build/toastr.min.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,8 +17,9 @@ root.render(
     <FeedsContainer.Provider>
       <RouterProvider
         router={createHashRouter([
-          { path: "/mns", element: <App /> },
-          { path: "/notes", element: <App /> },
+          { path: "mns", element: <App /> },
+          { path: "note", element: <App /> },
+          { path: ":username", element: <App /> },
           { path: "/", element: <App /> },
         ])}
       ></RouterProvider>

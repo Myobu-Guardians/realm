@@ -6,6 +6,9 @@ import Icon from "@mdi/react";
 import { mdiLanguageMarkdown } from "@mdi/js";
 import { generateSummaryFromMarkdown } from "../lib/note";
 import AppContainer from "../containers/app";
+import toastr from "toastr";
+import { RealmNote } from "../lib/types";
+import FeedsContainer from "../containers/feeds";
 const EchoMD = require("@0xgg/echomd/core");
 
 const HMDFold = {
@@ -25,20 +28,37 @@ interface EditorProps {
 export default function Editor(props: EditorProps) {
   // const previewElement = useRef<HTMLDivElement>(null);
   const appContainer = AppContainer.useContainer();
+  const feedsContainer = FeedsContainer.useContainer();
   const textAreaElement = useRef<HTMLTextAreaElement>(null);
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
   const [markdown, setMarkdown] = useState(
     localStorage.getItem("note/markdown") || "# Your note title goes here"
   );
 
-  const publishNote = useCallback(() => {
+  const publishNote = useCallback(async () => {
     if (!markdown.length) {
       return alert("Note is empty");
     } else {
       const summary = generateSummaryFromMarkdown(markdown);
       console.log(summary);
+      try {
+        toastr.info("Uploading to IPFS...");
+        const ipfsHash = await appContainer.ipfsAdd(markdown);
+        console.log(await appContainer.ipfsCat(ipfsHash));
+        const note: RealmNote = { ...summary, ipfsHash };
+        await feedsContainer.publishNote(note);
+        toastr.success("Note published!");
+      } catch (error) {
+        console.error(error);
+        toastr.error("Error publishing note");
+      }
     }
-  }, [markdown]);
+  }, [
+    markdown,
+    appContainer.ipfsAdd,
+    appContainer.ipfsCat,
+    feedsContainer.publishNote,
+  ]);
 
   // Set editor
   useEffect(() => {
@@ -94,8 +114,13 @@ export default function Editor(props: EditorProps) {
   }, [editor]);
 
   return (
-    <div className="modal modal-open editor">
-      <div className="modal-box max-w-full w-8/12">
+    <div className="sm:modal sm:modal-open editor">
+      <div
+        className="fixed top-0 left-0 w-full h-full z-20 overflow-auto sm:relative sm:modal-box sm:max-w-full sm:w-8/12"
+        style={{
+          backgroundColor: "#282c34",
+        }}
+      >
         <div className="navbar sticky top-0 z-20 bg-neutral text-neutral-content">
           <div className="flex-1">
             <Icon path={mdiLanguageMarkdown} size={1} className={"mr-2"}></Icon>
