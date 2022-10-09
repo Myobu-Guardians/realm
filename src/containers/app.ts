@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import MyobuProtocolClient from "myobu-protocol-client";
-import { MNSProfile } from "../lib/types";
+import { MNSProfile, Tab } from "../lib/types";
 import { NFTStorage } from "nft.storage";
 
 interface ArweaveAddArgs {
@@ -27,6 +27,7 @@ const AppContainer = createContainer(() => {
       token: process.env.REACT_APP_NFTSTORAGE_TOKEN || "",
     })
   );
+  const [tab, setTab] = useState<Tab>(Tab.Notes);
 
   const ipfsAdd = useCallback(
     async (content: string): Promise<string> => {
@@ -118,7 +119,13 @@ const AppContainer = createContainer(() => {
       // Fetch mns
       client
         .db({
-          match: [{ key: "profile", props: { _owner: signerAddress } }],
+          match: [
+            {
+              key: "profile",
+              labels: ["MNS"],
+              props: { _owner: signerAddress },
+            },
+          ],
           return: ["profile"],
         })
         .then((result) => {
@@ -142,6 +149,8 @@ const AppContainer = createContainer(() => {
     ipfsAdd,
     ipfsCat,
     arweaveAdd,
+    tab,
+    setTab,
   };
 });
 

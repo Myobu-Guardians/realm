@@ -23,9 +23,11 @@ export function generateSummaryFromMarkdown(markdown: string): Summary {
         images.push(match[1].trim());
       }
     });
-    images = images.filter(
-      (image, index, self) => index === self.findIndex((m) => m === image)
-    );
+    images = images
+      .filter(
+        (image, index, self) => index === self.findIndex((m) => m === image)
+      )
+      .slice(0, 9); // Get unique images and limit to 9
   }
 
   summary = title

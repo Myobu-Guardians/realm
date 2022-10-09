@@ -2,6 +2,11 @@
 
 import { Summary } from "./note";
 
+export enum Tab {
+  Notes = "notes",
+  MNS = "mns",
+}
+
 export interface NodeBase {
   _id?: string;
   _updatedAt?: number;
@@ -39,4 +44,9 @@ export interface MNSProfile extends NodeBase {
 export interface RealmNote extends NodeBase, Summary {
   ipfsHash: string;
   arweaveId?: string;
+  author?: {
+    name: string;
+    displayName: string;
+    avatar: string;
+  };
 }

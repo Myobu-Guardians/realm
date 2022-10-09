@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Icon from "@mdi/react";
 import "./App.css";
 import { mdiPencil, mdiMenu } from "@mdi/js";
@@ -11,11 +11,18 @@ import {
   generateForegroundColorBasedOnBackgroundColor,
   randomColorGenerator,
 } from "./lib/utils";
+import { Link } from "react-router-dom";
+import { Tab } from "./lib/types";
+import { ProfileCards } from "./components/ProfileCards";
+import { NoteCards } from "./components/NoteCards";
 
-function App() {
+interface AppProps {
+  tab: Tab;
+}
+
+function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
-
   const [showEditor, setShowEditor] = useState(false);
 
   const connectWalletButton = useMemo(() => {
@@ -29,15 +36,9 @@ function App() {
     );
   }, [appContainer.connectToMetaMask]);
 
-  const profileCards = useMemo(() => {
-    return feedsContainer.mnsProfiles.map((profile) => {
-      return (
-        <div key={profile._id} className={"mb-2 sm:m-2"}>
-          <MNSProfileCard labels={["MNS"]} profile={profile}></MNSProfileCard>
-        </div>
-      );
-    });
-  }, [feedsContainer.mnsProfiles]);
+  useEffect(() => {
+    appContainer.setTab(props.tab);
+  }, [props.tab]);
 
   return (
     <div className="App">
@@ -92,14 +93,8 @@ function App() {
           <input id="my-drawer" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content pt-2 px-0 sm:pt-12 sm:px-2">
             {/** right panel */}
-            <div>
-              <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
-                :MNS
-              </div>
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center sm:justify-start">
-                {profileCards}
-              </div>
-            </div>
+            {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
+            {props.tab === Tab.Notes && <NoteCards></NoteCards>}
           </div>
           <div className="drawer-side">
             <label htmlFor="my-drawer" className="drawer-overlay"></label>
@@ -111,26 +106,30 @@ function App() {
                     labels={["MNS"]}
                     profile={appContainer.signerProfile}
                   ></MNSProfileCard>
-
+                  {/*
                   <div className="mt-4 px-2 sm:px-0">
                     <div className="text-primary-content text-lg text-left uppercase font-bold mb-2">
                       Your Realm
                     </div>
                     <div>
-                      <div
-                        className="badge badge-lg cursor-pointer"
-                        style={{
-                          backgroundColor:
-                            randomColorGenerator.generateColor(":Note"),
-                          color: generateForegroundColorBasedOnBackgroundColor(
-                            randomColorGenerator.generateColor(":Note")
-                          ),
-                        }}
-                      >
-                        :Note
-                      </div>
+                      <Link to={`/${appContainer.signerProfile.name}.m/notes`}>
+                        <div
+                          className="badge badge-lg cursor-pointer"
+                          style={{
+                            backgroundColor:
+                              randomColorGenerator.generateColor(":Note"),
+                            color:
+                              generateForegroundColorBasedOnBackgroundColor(
+                                randomColorGenerator.generateColor(":Note")
+                              ),
+                          }}
+                        >
+                          :Note
+                        </div>
+                      </Link>
                     </div>
                   </div>
+                  */}
                 </div>
               ) : (
                 <div className="relative">
@@ -163,27 +162,31 @@ function App() {
                   Myobu Realm
                 </div>
                 <div>
-                  <div
-                    className="badge badge-lg cursor-pointer mr-2"
-                    style={{
-                      backgroundColor:
-                        randomColorGenerator.generateColor(":MNS"),
-                    }}
-                  >
-                    :MNS
-                  </div>
-                  <div
-                    className="badge badge-lg cursor-pointer mr-2"
-                    style={{
-                      backgroundColor:
-                        randomColorGenerator.generateColor(":Note"),
-                      color: generateForegroundColorBasedOnBackgroundColor(
-                        randomColorGenerator.generateColor(":Note")
-                      ),
-                    }}
-                  >
-                    :Note
-                  </div>
+                  <Link to={"/mns"}>
+                    <div
+                      className="badge badge-lg cursor-pointer mr-2"
+                      style={{
+                        backgroundColor:
+                          randomColorGenerator.generateColor(":MNS"),
+                      }}
+                    >
+                      :MNS
+                    </div>
+                  </Link>
+                  <Link to={`/notes`}>
+                    <div
+                      className="badge badge-lg cursor-pointer mr-2"
+                      style={{
+                        backgroundColor:
+                          randomColorGenerator.generateColor(":Note"),
+                        color: generateForegroundColorBasedOnBackgroundColor(
+                          randomColorGenerator.generateColor(":Note")
+                        ),
+                      }}
+                    >
+                      :Note
+                    </div>
+                  </Link>
                   <div
                     className="badge badge-lg cursor-not-allowed"
                     style={{

@@ -7,6 +7,7 @@ import reportWebVitals from "./reportWebVitals";
 import AppContainer from "./containers/app";
 import FeedsContainer from "./containers/feeds";
 import "toastr/build/toastr.min.css";
+import { Tab } from "./lib/types";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -17,10 +18,9 @@ root.render(
     <FeedsContainer.Provider>
       <RouterProvider
         router={createHashRouter([
-          { path: "mns", element: <App /> },
-          { path: "note", element: <App /> },
-          { path: ":username", element: <App /> },
-          { path: "/", element: <App /> },
+          { path: "mns", element: <App tab={Tab.MNS} /> },
+          { path: "notes", element: <App tab={Tab.Notes} /> },
+          { path: "/", element: <App tab={Tab.Notes} /> },
         ])}
       ></RouterProvider>
     </FeedsContainer.Provider>
