@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import MyobuProtocolClient from "myobu-protocol-client";
 import { MNSProfile } from "../lib/types";
+const IpfsApi = require("ipfs-api");
 
 const AppContainer = createContainer(() => {
   const [client, setClient] = useState<MyobuProtocolClient | undefined>(
@@ -14,6 +15,41 @@ const AppContainer = createContainer(() => {
   );
   const [signerProfile, setSignerProfile] = useState<MNSProfile | undefined>(
     undefined
+  );
+  const [ipfsApi] = useState<any>(
+    IpfsApi({
+      host: "ipfs.infura.io",
+      port: 5001,
+      protocol: "https",
+    })
+  );
+
+  const ipfsAdd = useCallback(
+    async (content: string) => {
+      return (await ipfsApi.files.add(Buffer.from(content)))[0];
+    },
+    [ipfsApi]
+  );
+
+  const ipfsCat = useCallback(
+    (ipfsHash: string) => {
+      return new Promise((resolve, reject) => {
+        let timeout = setTimeout(() => {
+          return reject(`timeout: https://ipfs.infura.io/ipfs/${ipfsHash}`);
+        }, 5000);
+
+        ipfsApi.files.cat(ipfsHash, (error: any, file: any) => {
+          clearTimeout(timeout);
+          if (error) {
+            return reject(error);
+          } else {
+            const content = file.toString("utf8");
+            return resolve(content);
+          }
+        });
+      });
+    },
+    [ipfsApi]
   );
 
   const connectToMetaMask = useCallback(async () => {
@@ -43,6 +79,7 @@ const AppContainer = createContainer(() => {
     }
   }, []);
 
+  // Set up the myobu protocol client
   useEffect(() => {
     console.log(process.env.REACT_APP_MYOBU_PROTOCOL_SERVER_URL);
     const client = new MyobuProtocolClient({
@@ -82,7 +119,10 @@ const AppContainer = createContainer(() => {
     signer,
     signerAddress,
     signerProfile,
+    ipfsApi,
     connectToMetaMask,
+    ipfsAdd,
+    ipfsCat,
   };
 });
 

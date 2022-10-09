@@ -35,18 +35,8 @@ export interface MNSProfile extends NodeBase {
 }
 
 export interface RealmNote extends NodeBase {
-  description: string;
+  summary: string;
   images: string[];
   ipfs: string;
   arweave: string;
 }
-
-export type RealmFeed =
-  | {
-      type: "note";
-      props: RealmNote;
-    }
-  | {
-      type: "mns";
-      props: MNSProfile;
-    };

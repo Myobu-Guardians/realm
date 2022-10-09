@@ -24,3 +24,12 @@ class RandomColorGenerator {
 }
 
 export const randomColorGenerator = new RandomColorGenerator();
+
+export function generateForegroundColorBasedOnBackgroundColor(bgColor: string) {
+  const color = parseInt(bgColor.replace("#", ""), 16);
+  const r = (color >> 16) & 255;
+  const g = (color >> 8) & 255;
+  const b = color & 255;
+  const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luma < 40 ? "#ffffff" : "#000000";
+}

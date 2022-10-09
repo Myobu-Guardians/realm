@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { createHashRouter, RouterProvider, Route } from "react-router-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
@@ -13,7 +14,13 @@ root.render(
   //<React.StrictMode>
   <AppContainer.Provider>
     <FeedsContainer.Provider>
-      <App />
+      <RouterProvider
+        router={createHashRouter([
+          { path: "/mns", element: <App /> },
+          { path: "/notes", element: <App /> },
+          { path: "/", element: <App /> },
+        ])}
+      ></RouterProvider>
     </FeedsContainer.Provider>
   </AppContainer.Provider>
   //</React.StrictMode>
