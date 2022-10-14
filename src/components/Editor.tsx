@@ -7,8 +7,9 @@ import { mdiLanguageMarkdown } from "@mdi/js";
 import { generateSummaryFromMarkdown } from "../lib/note";
 import AppContainer from "../containers/app";
 import toastr from "toastr";
-import { RealmNote } from "../lib/types";
+import { EditorMode, RealmNote } from "../lib/types";
 import FeedsContainer from "../containers/feeds";
+import { renderPreview } from "@0xgg/echomd/preview";
 const EchoMD = require("@0xgg/echomd/core");
 
 const HMDFold = {
@@ -30,7 +31,9 @@ export default function Editor(props: EditorProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
   const textAreaElement = useRef<HTMLTextAreaElement>(null);
+  const previewElement = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
+  const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.Code);
   const [markdown, setMarkdown] = useState(
     localStorage.getItem("note/markdown") || "# Your note title goes here"
   );
@@ -48,6 +51,8 @@ export default function Editor(props: EditorProps) {
         const note: RealmNote = { ...summary, ipfsHash };
         await feedsContainer.publishNote(note);
         toastr.success("Note published!");
+        localStorage.removeItem("note/markdown");
+        props.onClose();
       } catch (error) {
         console.error(error);
         toastr.error("Error publishing note");
@@ -58,6 +63,7 @@ export default function Editor(props: EditorProps) {
     appContainer.ipfsAdd,
     appContainer.ipfsCat,
     feedsContainer.publishNote,
+    props.onClose,
   ]);
 
   // Set editor
@@ -79,6 +85,7 @@ export default function Editor(props: EditorProps) {
       editor.setOption("lineNumbers", false);
       editor.setOption("foldGutter", false);
       editor.setValue(markdown);
+      EchoMD.switchToNormal(editor);
       setEditor(editor);
 
       EchoMDSetTheme({
@@ -113,27 +120,65 @@ export default function Editor(props: EditorProps) {
     }
   }, [editor]);
 
+  // Render Preview
+  useEffect(() => {
+    if (
+      editorMode === EditorMode.Preview &&
+      editor &&
+      previewElement &&
+      previewElement.current
+    ) {
+      try {
+        renderPreview(previewElement.current, editor.getValue());
+      } catch (error: any) {
+        previewElement.current.innerText = error.toString();
+      }
+    }
+  }, [editorMode, editor, previewElement]);
+
   return (
     <div className="sm:modal sm:modal-open editor">
       <div
-        className="fixed top-0 left-0 w-full h-full z-20 overflow-auto sm:relative sm:modal-box sm:max-w-full sm:w-8/12"
+        className="fixed top-0 left-0 w-full h-full z-20 overflow-auto sm:relative sm:modal-box sm:max-w-full sm:w-8/12 flex flex-col"
         style={{
           backgroundColor: "#282c34",
         }}
       >
         <div className="navbar sticky top-0 z-20 bg-neutral text-neutral-content">
           <div className="flex-1">
-            <Icon path={mdiLanguageMarkdown} size={1} className={"mr-2"}></Icon>
+            <Icon
+              path={mdiLanguageMarkdown}
+              size={1}
+              className={"mr-2"}
+              title={"Markdown supported"}
+            ></Icon>
             <a
               href="https://www.markdownguide.org/basic-syntax/"
               target={"_blank"}
               rel={"noreferrer"}
-              className={"link"}
+              className={"link hidden md:inline-block"}
             >
-              markdown supported
+              Markdown supported
             </a>
           </div>
           <div className="flex-none">
+            <div className="form-control mr-2">
+              <label className="label cursor-pointer">
+                <span className="label-text mr-1">Preview</span>
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary"
+                  checked={editorMode === EditorMode.Preview}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEditorMode(EditorMode.Preview);
+                    } else {
+                      setEditorMode(EditorMode.Code);
+                    }
+                  }}
+                ></input>
+              </label>
+            </div>
             <button className="btn btn-secondary mr-2" onClick={props.onClose}>
               Close
             </button>
@@ -142,11 +187,17 @@ export default function Editor(props: EditorProps) {
             </button>
           </div>
         </div>
-        <div className="editor-wrapper text-left">
+        <div className="editor-wrapper text-left relative flex-1">
           <textarea
             ref={textAreaElement}
             placeholder={"# Your note title"}
           ></textarea>
+          {editorMode === EditorMode.Preview && editor ? (
+            <div
+              className={"preview p-2 absolute left-0 top-0 w-full h-full"}
+              ref={previewElement}
+            ></div>
+          ) : null}
         </div>
       </div>
     </div>

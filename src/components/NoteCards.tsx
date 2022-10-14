@@ -15,14 +15,18 @@ export function NoteCard({ note }: NoteCardProps) {
               className={
                 "p-1 " +
                 (note.images.length > 4
-                  ? "w-1/3 h-1/3"
+                  ? "w-1/3"
                   : note.images.length > 1
-                  ? "w-1/2 h-1/2"
+                  ? "w-1/2"
                   : "w-full")
               }
               key={note._id + image}
             >
-              <img src={image} alt="note" className="object-cover" />
+              <img
+                src={image}
+                alt="note"
+                className="w-full h-full rounded-md"
+              />
             </div>
           ))}
         </div>
@@ -63,7 +67,7 @@ export function NoteCards() {
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
         :NOTE
       </div>
-      <div className="flex flex-col sm:flex-row flex-wrap justify-center sm:justify-start">
+      <div className="columns-1 sm:columns-[24rem]">
         {feedsContainer.notes.length === 0 ? (
           <div className="text-primary-content text-center">No notes found</div>
         ) : (

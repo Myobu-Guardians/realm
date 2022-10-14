@@ -8,7 +8,7 @@ export function ProfileCards() {
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
         :MNS
       </div>
-      <div className="flex flex-col sm:flex-row flex-wrap justify-center sm:justify-start">
+      <div className="columns-1 sm:columns-[24rem]">
         {feedsContainer.mnsProfiles.map((profile) => {
           return (
             <div key={profile._id} className={"mb-2 sm:m-2"}>

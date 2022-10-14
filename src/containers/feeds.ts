@@ -12,28 +12,58 @@ const FeedsContainer = createContainer(() => {
 
   const publishNote = useCallback(
     async (note: RealmNote) => {
-      if (appContainer.client) {
+      if (appContainer.client && appContainer.signerAddress) {
         const result = await appContainer.client.db({
-          create: [
+          match: [
             {
-              key: "note",
-              labels: ["Note"],
+              key: "author",
+              labels: ["MNS"],
               props: {
-                summary: note.summary,
-                images: note.images,
-                ipfsHash: note.ipfsHash,
-                arweaveId: note.arweaveId || "",
+                _owner: appContainer.signerAddress,
               },
             },
           ],
-          return: ["note"],
+          create: [
+            {
+              key: "r",
+              type: "POSTED",
+              from: { key: "author" },
+              to: {
+                key: "note",
+                labels: ["Note"],
+                props: {
+                  summary: note.summary,
+                  images: note.images,
+                  ipfsHash: note.ipfsHash,
+                  arweaveId: note.arweaveId || "",
+                },
+              },
+            },
+          ],
+          return: [
+            "note",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
         });
         console.log(result);
+        setNotes((notes) => [
+          {
+            ...result[0].note.props,
+            author: {
+              name: result[0].authorName,
+              displayName: result[0].authorDisplayName,
+              avatar: result[0].authorAvatar || "",
+            },
+          } as any,
+          ...notes,
+        ]);
       } else {
         throw new Error("Client is not ready");
       }
     },
-    [appContainer.client]
+    [appContainer.client, appContainer.signerAddress]
   );
 
   useEffect(() => {

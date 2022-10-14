@@ -50,3 +50,8 @@ export interface RealmNote extends NodeBase, Summary {
     avatar: string;
   };
 }
+
+export enum EditorMode {
+  Code = "code",
+  Preview = "preview",
+}

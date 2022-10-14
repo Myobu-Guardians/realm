@@ -27,5 +27,8 @@ import "codemirror/mode/python/python";
 import "codemirror/mode/stex/stex"; // for Math TeX Formular
 import "codemirror/mode/yaml/yaml"; // for Front Matters
 
+// Set necessary window scope variables
+window["CodeMirror"] = require("codemirror");
+
 const packageJSON = require("../../package.json");
 export const EchoMDVersion: string = packageJSON.dependencies["@0xgg/echomd"];
