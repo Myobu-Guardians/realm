@@ -6,14 +6,21 @@ import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
 import { siIpfs } from "simple-icons/icons";
-import { mdiArrowLeft, mdiTrashCan, mdiTrashCanOutline } from "@mdi/js";
+import {
+  mdiArrowLeft,
+  mdiPencilOutline,
+  mdiTrashCan,
+  mdiTrashCanOutline,
+} from "@mdi/js";
 import toastr from "toastr";
 import { useLocation, useNavigate } from "react-router-dom";
+import Editor from "./Editor";
 
 export default function NotePanel() {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
   const previewElement = useRef<HTMLDivElement>(null);
+  const [showEditor, setShowEditor] = useState<boolean>(false);
   const [markdown, setMarkdown] = useState<string>("");
   const location = useLocation();
   const navigation = useNavigate();
@@ -147,6 +154,13 @@ export default function NotePanel() {
                   size={1}
                 ></Icon>
               </button>
+              <button
+                className="btn btn-circle btn-sm ml-2"
+                title={"Edit this note"}
+                onClick={() => setShowEditor(true)}
+              >
+                <Icon className="" path={mdiPencilOutline} size={1}></Icon>
+              </button>
             </div>
           )}
         </div>
@@ -159,6 +173,16 @@ export default function NotePanel() {
         }}
         ref={previewElement}
       ></div>
+      {/* Edit note */}
+      {showEditor && (
+        <Editor
+          onClose={() => {
+            setShowEditor(false);
+          }}
+          note={feedsContainer.note}
+          noteMarkdown={markdown}
+        ></Editor>
+      )}
     </div>
   );
 }

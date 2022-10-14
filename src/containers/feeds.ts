@@ -1,8 +1,14 @@
 import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
+import { Summary } from "../lib/note";
 import { MNSProfile, RealmNote, Tab } from "../lib/types";
 import AppContainer from "./app";
+
+interface UpdateNoteArgs extends Summary {
+  noteId: string;
+  ipfsHash: string;
+}
 
 const FeedsContainer = createContainer(() => {
   const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[]>([]);
@@ -85,6 +91,46 @@ const FeedsContainer = createContainer(() => {
           return: ["note"],
         });
         setNotes((notes) => notes.filter((n) => n._id !== noteId));
+      }
+    },
+    [appContainer.client, appContainer.signerAddress]
+  );
+
+  const updateNote = useCallback(
+    async (args: UpdateNoteArgs) => {
+      if (appContainer.client && appContainer.signerAddress && args.noteId) {
+        const result = await appContainer.client.db({
+          match: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                _id: args.noteId,
+                _owner: appContainer.signerAddress,
+              },
+            },
+          ],
+          set: {
+            "note.ipfsHash": args.ipfsHash,
+            "note.summary": args.summary,
+            "note.images": args.images,
+          },
+          return: ["note"],
+        });
+        setNotes((notes) =>
+          notes.map((n) => {
+            if (n._id === args.noteId) {
+              return {
+                ...n,
+                ipfsHash: args.ipfsHash,
+                summary: args.summary,
+                images: args.images,
+                _updatedAt: Date.now(),
+              };
+            }
+            return n;
+          })
+        );
       }
     },
     [appContainer.client, appContainer.signerAddress]
@@ -213,6 +259,7 @@ const FeedsContainer = createContainer(() => {
     mnsProfiles,
     publishNote,
     deleteNote,
+    updateNote,
     notes,
     note,
   };

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import MyobuProtocolClient from "myobu-protocol-client";
-import { MNSProfile, Tab } from "../lib/types";
+import { MNSProfile, Tab, WalletConnectMethod } from "../lib/types";
 import { NFTStorage } from "nft.storage";
 import { Params } from "react-router-dom";
 
@@ -19,6 +19,12 @@ const AppContainer = createContainer(() => {
   const [signer, setSigner] = useState<ethers.Signer | undefined>(undefined);
   const [signerAddress, setSignerAddress] = useState<string | undefined>(
     undefined
+  );
+  const [connectedWalletMethod, setConnectedWalletMethod] = useState<
+    WalletConnectMethod | undefined
+  >(
+    (localStorage.getItem("wallet/connected_method") as WalletConnectMethod) ||
+      undefined
   );
   const [signerProfile, setSignerProfile] = useState<MNSProfile | undefined>(
     undefined
@@ -74,32 +80,72 @@ const AppContainer = createContainer(() => {
     return await res.text();
   }, []);
 
+  const setConnectedWalletMethod_ = useCallback(
+    (connectedWalletMethod: WalletConnectMethod | undefined) => {
+      setConnectedWalletMethod(connectedWalletMethod);
+      if (connectedWalletMethod) {
+        localStorage.setItem("wallet/connected_method", connectedWalletMethod);
+      } else {
+        localStorage.removeItem("wallet/connected_method");
+      }
+    },
+    []
+  );
+
   const connectToMetaMask = useCallback(async () => {
     const ethereum = (window as any)["ethereum"];
     if (ethereum) {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      setSigner(signer);
-
-      const setSigner_ = async () => {
+      try {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
         setSigner(signer);
 
-        const signerAddress = await signer.getAddress();
-        setSignerAddress(signerAddress);
-      };
+        const setSigner_ = async () => {
+          const signer = provider.getSigner();
+          setSigner(signer);
 
-      ethereum.on("accountsChanged", setSigner_);
-      setSigner_();
+          const signerAddress = await signer.getAddress();
+          setSignerAddress(signerAddress);
+        };
 
-      ethereum.on("chainChanged", async function () {
-        window.location.reload();
-      });
+        ethereum.on("accountsChanged", setSigner_);
+        setSigner_();
+
+        ethereum.on("chainChanged", async function () {
+          window.location.reload();
+        });
+        setConnectedWalletMethod_(WalletConnectMethod.MetaMask);
+      } catch (error) {
+        setConnectedWalletMethod_(undefined);
+      }
     } else {
       alert("MetaMask not found");
+      setConnectedWalletMethod_(undefined);
     }
-  }, []);
+  }, [setConnectedWalletMethod_]);
+
+  useEffect(() => {
+    (async () => {
+      const connectedWalletMethod = localStorage.getItem(
+        "wallet/connected_method"
+      ) as WalletConnectMethod;
+      if (connectedWalletMethod) {
+        switch (connectedWalletMethod) {
+          case WalletConnectMethod.MetaMask:
+            connectToMetaMask();
+            break;
+          // case WalletConnectMethod.WalletConnect:
+          //   connectToWalletConnect();
+          //   break;
+          default:
+            // setProvider(undefined);
+            setSigner(undefined);
+            setSignerAddress(undefined);
+        }
+      }
+    })();
+  }, [connectToMetaMask]);
 
   // Set up the myobu protocol client
   useEffect(() => {

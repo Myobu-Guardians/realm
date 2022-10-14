@@ -24,6 +24,8 @@ const HMDFold = {
 
 interface EditorProps {
   onClose: () => void;
+  note?: RealmNote;
+  noteMarkdown?: string;
 }
 
 export default function Editor(props: EditorProps) {
@@ -35,7 +37,9 @@ export default function Editor(props: EditorProps) {
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
   const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.Code);
   const [markdown, setMarkdown] = useState(
-    localStorage.getItem("note/markdown") || "# Your note title goes here"
+    props.noteMarkdown ||
+      localStorage.getItem("note/markdown") ||
+      "# Your note title goes here"
   );
 
   const publishNote = useCallback(async () => {
@@ -63,6 +67,40 @@ export default function Editor(props: EditorProps) {
     appContainer.ipfsAdd,
     appContainer.ipfsCat,
     feedsContainer.publishNote,
+    props.onClose,
+  ]);
+
+  const updateNote = useCallback(async () => {
+    if (!props.note) {
+      return alert("Note not found");
+    } else if (!markdown.length) {
+      return alert("Note is empty");
+    } else {
+      const summary = generateSummaryFromMarkdown(markdown);
+      console.log(summary);
+      try {
+        toastr.info("Uploading to IPFS...");
+        const ipfsHash = await appContainer.ipfsAdd(markdown);
+        console.log(await appContainer.ipfsCat(ipfsHash));
+        await feedsContainer.updateNote({
+          noteId: props.note._id || "",
+          ipfsHash,
+          ...summary,
+        });
+        toastr.success("Note updated!");
+        localStorage.removeItem("note/markdown");
+        props.onClose();
+      } catch (error) {
+        console.error(error);
+        toastr.error("Error updating note");
+      }
+    }
+  }, [
+    markdown,
+    appContainer.ipfsAdd,
+    appContainer.ipfsCat,
+    feedsContainer.updateNote,
+    props.note,
     props.onClose,
   ]);
 
@@ -182,9 +220,15 @@ export default function Editor(props: EditorProps) {
             <button className="btn btn-secondary mr-2" onClick={props.onClose}>
               Close
             </button>
-            <button className="btn btn-primary" onClick={publishNote}>
-              Publish
-            </button>
+            {props.note ? (
+              <button className="btn btn-primary" onClick={updateNote}>
+                Update
+              </button>
+            ) : (
+              <button className="btn btn-primary" onClick={publishNote}>
+                Publish
+              </button>
+            )}
           </div>
         </div>
         <div className="editor-wrapper text-left relative flex-1">
