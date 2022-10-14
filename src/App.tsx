@@ -11,10 +11,11 @@ import {
   generateForegroundColorBasedOnBackgroundColor,
   randomColorGenerator,
 } from "./lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Tab } from "./lib/types";
 import { ProfileCards } from "./components/ProfileCards";
 import { NoteCards } from "./components/NoteCards";
+import NotePanel from "./components/NotePanel";
 
 interface AppProps {
   tab: Tab;
@@ -22,8 +23,8 @@ interface AppProps {
 
 function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
-  const feedsContainer = FeedsContainer.useContainer();
   const [showEditor, setShowEditor] = useState(false);
+  const params = useParams();
 
   const connectWalletButton = useMemo(() => {
     return (
@@ -37,8 +38,9 @@ function App(props: AppProps) {
   }, [appContainer.connectToMetaMask]);
 
   useEffect(() => {
+    appContainer.setParams(params);
     appContainer.setTab(props.tab);
-  }, [props.tab]);
+  }, [params, props.tab]);
 
   return (
     <div className="App">
@@ -95,6 +97,7 @@ function App(props: AppProps) {
             {/** right panel */}
             {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
             {props.tab === Tab.Notes && <NoteCards></NoteCards>}
+            {props.tab === Tab.Note && <NotePanel></NotePanel>}
           </div>
           <div className="drawer-side">
             <label htmlFor="my-drawer" className="drawer-overlay"></label>

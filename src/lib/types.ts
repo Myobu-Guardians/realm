@@ -5,6 +5,8 @@ import { Summary } from "./note";
 export enum Tab {
   Notes = "notes",
   MNS = "mns",
+  Note = "note",
+  Unknown = "unknown",
 }
 
 export interface NodeBase {

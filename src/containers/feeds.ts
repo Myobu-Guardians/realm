@@ -1,12 +1,13 @@
 import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { MNSProfile, RealmNote } from "../lib/types";
+import { MNSProfile, RealmNote, Tab } from "../lib/types";
 import AppContainer from "./app";
 
 const FeedsContainer = createContainer(() => {
   const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[]>([]);
   const [notes, setNotes] = useState<RealmNote[]>([]);
+  const [note, setNote] = useState<RealmNote | undefined>(undefined);
 
   const appContainer = AppContainer.useContainer();
 
@@ -61,6 +62,29 @@ const FeedsContainer = createContainer(() => {
         ]);
       } else {
         throw new Error("Client is not ready");
+      }
+    },
+    [appContainer.client, appContainer.signerAddress]
+  );
+
+  const deleteNote = useCallback(
+    async (noteId: string) => {
+      if (appContainer.client && appContainer.signerAddress && noteId) {
+        await appContainer.client.db({
+          match: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                _id: noteId,
+                _owner: appContainer.signerAddress,
+              },
+            },
+          ],
+          detachDelete: ["note"],
+          return: ["note"],
+        });
+        setNotes((notes) => notes.filter((n) => n._id !== noteId));
       }
     },
     [appContainer.client, appContainer.signerAddress]
@@ -136,10 +160,61 @@ const FeedsContainer = createContainer(() => {
     }
   }, [appContainer.client, appContainer.tab]);
 
+  useEffect(() => {
+    console.log(appContainer.params, appContainer.tab);
+    if (
+      appContainer.tab === Tab.Note &&
+      appContainer.params.noteId &&
+      appContainer.client
+    ) {
+      const findNote = notes.find((x) => x._id === appContainer.params.noteId);
+      if (findNote) {
+        setNote(findNote);
+      } else {
+        appContainer.client
+          .db({
+            match: [
+              {
+                key: "note",
+                labels: ["Note"],
+                props: { _id: appContainer.params.noteId },
+              },
+              { key: "author", labels: ["MNS"] },
+            ],
+            where: {
+              "author._owner": {
+                $eq: "$note._owner",
+              },
+            },
+            return: [
+              "note",
+              { key: "author.displayName", as: "authorDisplayName" },
+              { key: "author.name", as: "authorName" },
+              { key: "author.avatar", as: "authorAvatar" },
+            ],
+          })
+          .then((result) => {
+            const note: RealmNote = {
+              ...result[0].note.props,
+              author: {
+                name: result[0].authorName,
+                displayName: result[0].authorDisplayName,
+                avatar: result[0].authorAvatar || "",
+              },
+            } as any;
+            console.log("fetched note: ", note);
+            setNote(note);
+          });
+      }
+    }
+  }, [appContainer.client, appContainer.tab, appContainer.params, notes]);
+
   return {
     mnsProfiles,
     publishNote,
+    deleteNote,
     notes,
+    note,
   };
 });
 

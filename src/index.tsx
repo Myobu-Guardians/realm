@@ -20,6 +20,7 @@ root.render(
         router={createHashRouter([
           { path: "mns", element: <App tab={Tab.MNS} /> },
           { path: "notes", element: <App tab={Tab.Notes} /> },
+          { path: "notes/:noteId", element: <App tab={Tab.Note} /> },
           { path: "/", element: <App tab={Tab.Notes} /> },
         ])}
       ></RouterProvider>

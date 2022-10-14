@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import FeedsContainer from "../containers/feeds";
 import { RealmNote } from "../lib/types";
 
@@ -74,7 +75,9 @@ export function NoteCards() {
           feedsContainer.notes.map((note) => {
             return (
               <div key={note._id} className={"mb-2 sm:m-2"}>
-                <NoteCard note={note}></NoteCard>
+                <Link to={`/notes/${note._id}`}>
+                  <NoteCard note={note}></NoteCard>
+                </Link>
               </div>
             );
           })
