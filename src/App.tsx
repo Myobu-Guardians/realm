@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Icon from "@mdi/react";
 import "./App.css";
 import { mdiPencil, mdiMenu } from "@mdi/js";
@@ -12,10 +12,12 @@ import {
   randomColorGenerator,
 } from "./lib/utils";
 import { Link, useParams } from "react-router-dom";
-import { Tab } from "./lib/types";
+import { RealmNote, Tab } from "./lib/types";
 import { ProfileCards } from "./components/ProfileCards";
 import { NoteCards } from "./components/NoteCards";
 import NotePanel from "./components/NotePanel";
+import { generateSummaryFromMarkdown } from "./lib/note";
+import toastr from "toastr";
 
 interface AppProps {
   tab: Tab;
@@ -23,6 +25,7 @@ interface AppProps {
 
 function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
+  const feedsContainer = FeedsContainer.useContainer();
   const [showEditor, setShowEditor] = useState(false);
   const params = useParams();
 
@@ -36,6 +39,31 @@ function App(props: AppProps) {
       </button>
     );
   }, [appContainer.connectToMetaMask]);
+
+  const publishNote = useCallback(
+    async (markdown: string) => {
+      if (!markdown.length) {
+        return alert("Note is empty");
+      } else {
+        const summary = generateSummaryFromMarkdown(markdown);
+        console.log(summary);
+        try {
+          toastr.info("Uploading to IPFS...");
+          const ipfsHash = await appContainer.ipfsAdd(markdown);
+          console.log(await appContainer.ipfsCat(ipfsHash));
+          const note: RealmNote = { ...summary, ipfsHash };
+          await feedsContainer.publishNote(note);
+          toastr.success("Note published!");
+          localStorage.removeItem("note/markdown");
+          setShowEditor(false);
+        } catch (error) {
+          console.error(error);
+          toastr.error("Error publishing note");
+        }
+      }
+    },
+    [appContainer.ipfsAdd, appContainer.ipfsCat, feedsContainer.publishNote]
+  );
 
   useEffect(() => {
     appContainer.setParams(params);
@@ -209,7 +237,13 @@ function App(props: AppProps) {
           </div>
         </div>
       </div>
-      {showEditor && <Editor onClose={() => setShowEditor(false)}></Editor>}
+      {showEditor && (
+        <Editor
+          onClose={() => setShowEditor(false)}
+          confirmButtonText={"Publish"}
+          onConfirm={publishNote}
+        ></Editor>
+      )}
     </div>
   );
 }

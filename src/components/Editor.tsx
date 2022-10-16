@@ -26,12 +26,12 @@ interface EditorProps {
   onClose: () => void;
   note?: RealmNote;
   noteMarkdown?: string;
+  confirmButtonText: string;
+  onConfirm: (markdown: string) => void;
 }
 
 export default function Editor(props: EditorProps) {
   // const previewElement = useRef<HTMLDivElement>(null);
-  const appContainer = AppContainer.useContainer();
-  const feedsContainer = FeedsContainer.useContainer();
   const textAreaElement = useRef<HTMLTextAreaElement>(null);
   const previewElement = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
@@ -41,68 +41,6 @@ export default function Editor(props: EditorProps) {
       localStorage.getItem("note/markdown") ||
       "# Your note title goes here"
   );
-
-  const publishNote = useCallback(async () => {
-    if (!markdown.length) {
-      return alert("Note is empty");
-    } else {
-      const summary = generateSummaryFromMarkdown(markdown);
-      console.log(summary);
-      try {
-        toastr.info("Uploading to IPFS...");
-        const ipfsHash = await appContainer.ipfsAdd(markdown);
-        console.log(await appContainer.ipfsCat(ipfsHash));
-        const note: RealmNote = { ...summary, ipfsHash };
-        await feedsContainer.publishNote(note);
-        toastr.success("Note published!");
-        localStorage.removeItem("note/markdown");
-        props.onClose();
-      } catch (error) {
-        console.error(error);
-        toastr.error("Error publishing note");
-      }
-    }
-  }, [
-    markdown,
-    appContainer.ipfsAdd,
-    appContainer.ipfsCat,
-    feedsContainer.publishNote,
-    props.onClose,
-  ]);
-
-  const updateNote = useCallback(async () => {
-    if (!props.note) {
-      return alert("Note not found");
-    } else if (!markdown.length) {
-      return alert("Note is empty");
-    } else {
-      const summary = generateSummaryFromMarkdown(markdown);
-      console.log(summary);
-      try {
-        toastr.info("Uploading to IPFS...");
-        const ipfsHash = await appContainer.ipfsAdd(markdown);
-        console.log(await appContainer.ipfsCat(ipfsHash));
-        await feedsContainer.updateNote({
-          noteId: props.note._id || "",
-          ipfsHash,
-          ...summary,
-        });
-        toastr.success("Note updated!");
-        localStorage.removeItem("note/markdown");
-        props.onClose();
-      } catch (error) {
-        console.error(error);
-        toastr.error("Error updating note");
-      }
-    }
-  }, [
-    markdown,
-    appContainer.ipfsAdd,
-    appContainer.ipfsCat,
-    feedsContainer.updateNote,
-    props.note,
-    props.onClose,
-  ]);
 
   // Set editor
   useEffect(() => {
@@ -177,7 +115,7 @@ export default function Editor(props: EditorProps) {
   return (
     <div className="sm:modal sm:modal-open editor">
       <div
-        className="fixed top-0 left-0 w-full h-full z-20 overflow-auto sm:relative sm:modal-box sm:max-w-full sm:w-8/12 flex flex-col"
+        className="fixed top-0 left-0 w-full h-full z-50 overflow-auto sm:relative sm:modal-box sm:max-w-full sm:w-8/12 flex flex-col"
         style={{
           backgroundColor: "#282c34",
         }}
@@ -220,15 +158,14 @@ export default function Editor(props: EditorProps) {
             <button className="btn btn-secondary mr-2" onClick={props.onClose}>
               Close
             </button>
-            {props.note ? (
-              <button className="btn btn-primary" onClick={updateNote}>
-                Update
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={publishNote}>
-                Publish
-              </button>
-            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                props.onConfirm(markdown);
+              }}
+            >
+              {props.confirmButtonText}
+            </button>
           </div>
         </div>
         <div className="editor-wrapper text-left relative flex-1">

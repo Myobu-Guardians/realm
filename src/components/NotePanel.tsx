@@ -6,15 +6,11 @@ import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
 import { siIpfs } from "simple-icons/icons";
-import {
-  mdiArrowLeft,
-  mdiPencilOutline,
-  mdiTrashCan,
-  mdiTrashCanOutline,
-} from "@mdi/js";
+import { mdiArrowLeft, mdiPencilOutline, mdiTrashCanOutline } from "@mdi/js";
 import toastr from "toastr";
 import { useLocation, useNavigate } from "react-router-dom";
 import Editor from "./Editor";
+import { generateSummaryFromMarkdown } from "../lib/note";
 
 export default function NotePanel() {
   const appContainer = AppContainer.useContainer();
@@ -43,6 +39,42 @@ export default function NotePanel() {
       }
     }
   }, [feedsContainer.note]);
+
+  const updateNote = useCallback(
+    async (markdown: string) => {
+      if (!feedsContainer.note) {
+        return alert("Note not found");
+      } else if (!markdown.length) {
+        return alert("Note is empty");
+      } else {
+        const summary = generateSummaryFromMarkdown(markdown);
+        console.log(summary);
+        try {
+          const note = feedsContainer.note;
+          toastr.info("Uploading to IPFS...");
+          const ipfsHash = await appContainer.ipfsAdd(markdown);
+          console.log(await appContainer.ipfsCat(ipfsHash));
+          await feedsContainer.updateNote({
+            noteId: note._id || "",
+            ipfsHash,
+            ...summary,
+          });
+          toastr.success("Note updated!");
+          localStorage.removeItem("note/markdown");
+          setShowEditor(false);
+        } catch (error) {
+          console.error(error);
+          toastr.error("Error updating note");
+        }
+      }
+    },
+    [
+      feedsContainer.note,
+      feedsContainer.updateNote,
+      appContainer.ipfsAdd,
+      appContainer.ipfsCat,
+    ]
+  );
 
   useEffect(() => {
     if (feedsContainer.note?.ipfsHash) {
@@ -181,6 +213,8 @@ export default function NotePanel() {
           }}
           note={feedsContainer.note}
           noteMarkdown={markdown}
+          confirmButtonText={"Update"}
+          onConfirm={updateNote}
         ></Editor>
       )}
     </div>
