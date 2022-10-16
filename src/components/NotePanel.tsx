@@ -6,17 +6,24 @@ import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
 import { siIpfs } from "simple-icons/icons";
-import { mdiArrowLeft, mdiPencilOutline, mdiTrashCanOutline } from "@mdi/js";
+import {
+  mdiArrowLeft,
+  mdiPencil,
+  mdiPencilOutline,
+  mdiTrashCanOutline,
+} from "@mdi/js";
 import toastr from "toastr";
 import { useLocation, useNavigate } from "react-router-dom";
-import Editor from "./Editor";
-import { generateSummaryFromMarkdown } from "../lib/note";
 
-export default function NotePanel() {
+interface Props {
+  showUpdateNoteEditor: (markdown: string) => void;
+  showMakeCommentEditor: () => void;
+}
+
+export default function NotePanel(props: Props) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
   const previewElement = useRef<HTMLDivElement>(null);
-  const [showEditor, setShowEditor] = useState<boolean>(false);
   const [markdown, setMarkdown] = useState<string>("");
   const location = useLocation();
   const navigation = useNavigate();
@@ -39,42 +46,6 @@ export default function NotePanel() {
       }
     }
   }, [feedsContainer.note]);
-
-  const updateNote = useCallback(
-    async (markdown: string) => {
-      if (!feedsContainer.note) {
-        return alert("Note not found");
-      } else if (!markdown.length) {
-        return alert("Note is empty");
-      } else {
-        const summary = generateSummaryFromMarkdown(markdown);
-        console.log(summary);
-        try {
-          const note = feedsContainer.note;
-          toastr.info("Uploading to IPFS...");
-          const ipfsHash = await appContainer.ipfsAdd(markdown);
-          console.log(await appContainer.ipfsCat(ipfsHash));
-          await feedsContainer.updateNote({
-            noteId: note._id || "",
-            ipfsHash,
-            ...summary,
-          });
-          toastr.success("Note updated!");
-          localStorage.removeItem("note/markdown");
-          setShowEditor(false);
-        } catch (error) {
-          console.error(error);
-          toastr.error("Error updating note");
-        }
-      }
-    },
-    [
-      feedsContainer.note,
-      feedsContainer.updateNote,
-      appContainer.ipfsAdd,
-      appContainer.ipfsCat,
-    ]
-  );
 
   useEffect(() => {
     if (feedsContainer.note?.ipfsHash) {
@@ -131,9 +102,9 @@ export default function NotePanel() {
       </div>
 
       {/* Top banner */}
-      <div className="w-[800px] max-w-full mx-auto flex flex-row items-center">
+      <div className="w-[800px] max-w-full mx-auto flex flex-row items-center mb-4 px-1 sm:px-0 py-2 bg-[#2A303C] sticky top-0">
         {/* author */}
-        <div className="flex flex-row items-center mb-4 flex-1">
+        <div className="flex flex-row items-center flex-1">
           <div className="avatar mr-2">
             <div className="w-[40px] rounded-full ring ring-white">
               <img
@@ -154,47 +125,49 @@ export default function NotePanel() {
             <span>@{feedsContainer.note.author?.name}.m</span>
           </div>
         </div>
-        <div className="flex-none flex flex-row items-center">
+        <div className="flex-none flex flex-col sm:flex-row items-center">
           {/* date */}
           <div className="badge ml-2">
             {new Date(feedsContainer.note._createdAt || 0).toLocaleString()}
           </div>
-          {/* ipfs */}
-          <a
-            href={`https://ipfs.io/ipfs/${feedsContainer.note.ipfsHash}`}
-            target={"_blank"}
-            rel={"noreferrer"}
-          >
-            <Icon
-              className="ml-2"
-              path={siIpfs.path}
-              size={1}
-              title={`This note has been permanently stored on IPFS: ${feedsContainer.note.ipfsHash}`}
-            ></Icon>
-          </a>
-          {/* buttons */}
-          {feedsContainer.note._owner === appContainer.signerAddress && (
-            <div>
-              <button
-                onClick={deleteNote}
-                className={"btn btn-circle btn-sm ml-2"}
-                title={"Delete this note"}
-              >
-                <Icon
-                  className="cursor-pointer text-red-400"
-                  path={mdiTrashCanOutline}
-                  size={1}
-                ></Icon>
-              </button>
-              <button
-                className="btn btn-circle btn-sm ml-2"
-                title={"Edit this note"}
-                onClick={() => setShowEditor(true)}
-              >
-                <Icon className="" path={mdiPencilOutline} size={1}></Icon>
-              </button>
-            </div>
-          )}
+          <div className="flex flex-row items-center">
+            {/* ipfs */}
+            <a
+              href={`https://ipfs.io/ipfs/${feedsContainer.note.ipfsHash}`}
+              target={"_blank"}
+              rel={"noreferrer"}
+            >
+              <Icon
+                className="ml-2"
+                path={siIpfs.path}
+                size={1}
+                title={`This note has been permanently stored on IPFS: ${feedsContainer.note.ipfsHash}`}
+              ></Icon>
+            </a>
+            {/* buttons */}
+            {feedsContainer.note._owner === appContainer.signerAddress && (
+              <>
+                <button
+                  onClick={deleteNote}
+                  className={"btn btn-circle btn-sm ml-2"}
+                  title={"Delete this note"}
+                >
+                  <Icon
+                    className="cursor-pointer text-red-400"
+                    path={mdiTrashCanOutline}
+                    size={1}
+                  ></Icon>
+                </button>
+                <button
+                  className="btn btn-circle btn-sm ml-2"
+                  title={"Edit this note"}
+                  onClick={() => props.showUpdateNoteEditor(markdown)}
+                >
+                  <Icon className="" path={mdiPencilOutline} size={1}></Icon>
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
       {/* Note markdown preview */}
@@ -205,18 +178,20 @@ export default function NotePanel() {
         }}
         ref={previewElement}
       ></div>
-      {/* Edit note */}
-      {showEditor && (
-        <Editor
-          onClose={() => {
-            setShowEditor(false);
-          }}
-          note={feedsContainer.note}
-          noteMarkdown={markdown}
-          confirmButtonText={"Update"}
-          onConfirm={updateNote}
-        ></Editor>
-      )}
+      {/* Bottom banner */}
+      <div className="w-[800px] max-w-full mx-auto flex flex-row items-center px-1 sm:px-0 py-2 bg-[#2A303C] sticky bottom-0 border-t-2 border-gray-600">
+        <div className="flex-1">
+          {/* comment button */}
+          <button
+            className="btn btn-outline btn-ghost"
+            onClick={props.showMakeCommentEditor}
+          >
+            <Icon path={mdiPencil} size={1} className={"mr-2"}></Icon>
+            Leave a comment
+          </button>
+        </div>
+        <div className="flex-none"></div>
+      </div>
     </div>
   );
 }

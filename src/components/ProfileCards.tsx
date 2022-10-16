@@ -4,7 +4,7 @@ import { MNSProfileCard } from "./MyobuNameServices";
 export function ProfileCards() {
   const feedsContainer = FeedsContainer.useContainer();
   return (
-    <div>
+    <div className="pt-2 sm:pt-12">
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
         :MNS
       </div>

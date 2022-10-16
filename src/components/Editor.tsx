@@ -1,14 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Editor as CodeMirrorEditor } from "codemirror";
-import { setTheme as EchoMDSetTheme, ThemeName } from "@0xgg/echomd/theme";
+import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
 import { mdiLanguageMarkdown } from "@mdi/js";
-import { generateSummaryFromMarkdown } from "../lib/note";
-import AppContainer from "../containers/app";
 import toastr from "toastr";
 import { EditorMode, RealmNote } from "../lib/types";
-import FeedsContainer from "../containers/feeds";
 import { renderPreview } from "@0xgg/echomd/preview";
 const EchoMD = require("@0xgg/echomd/core");
 
@@ -24,8 +21,8 @@ const HMDFold = {
 
 interface EditorProps {
   onClose: () => void;
-  note?: RealmNote;
   noteMarkdown?: string;
+  placeholder?: string;
   confirmButtonText: string;
   onConfirm: (markdown: string) => void;
 }
@@ -171,7 +168,7 @@ export default function Editor(props: EditorProps) {
         <div className="editor-wrapper text-left relative flex-1">
           <textarea
             ref={textAreaElement}
-            placeholder={"# Your note title"}
+            placeholder={props.placeholder || "# Your note title"}
           ></textarea>
           {editorMode === EditorMode.Preview && editor ? (
             <div

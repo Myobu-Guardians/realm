@@ -2,7 +2,7 @@ import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import { Summary } from "../lib/note";
-import { MNSProfile, RealmNote, Tab } from "../lib/types";
+import { Comment, MNSProfile, RealmNote, Tab } from "../lib/types";
 import AppContainer from "./app";
 
 interface UpdateNoteArgs extends Summary {
@@ -14,6 +14,7 @@ const FeedsContainer = createContainer(() => {
   const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[]>([]);
   const [notes, setNotes] = useState<RealmNote[]>([]);
   const [note, setNote] = useState<RealmNote | undefined>(undefined);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const appContainer = AppContainer.useContainer();
 
@@ -54,7 +55,6 @@ const FeedsContainer = createContainer(() => {
             { key: "author.avatar", as: "authorAvatar" },
           ],
         });
-        console.log(result);
         setNotes((notes) => [
           {
             ...result[0].note.props,
@@ -136,6 +136,76 @@ const FeedsContainer = createContainer(() => {
     [appContainer.client, appContainer.signerAddress]
   );
 
+  const makeComment = useCallback(
+    async (markdown: string) => {
+      if (
+        appContainer.client &&
+        appContainer.signerAddress &&
+        note &&
+        note._id
+      ) {
+        const result = await appContainer.client.db({
+          match: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                _id: note._id,
+              },
+            },
+            {
+              key: "author",
+              labels: ["MNS"],
+              props: {
+                _owner: appContainer.signerAddress,
+              },
+            },
+          ],
+          create: [
+            {
+              key: "r",
+              type: "COMMENTED",
+              from: { key: "author" },
+              to: {
+                key: "comment",
+                labels: ["Comment"],
+                props: {
+                  markdown,
+                },
+              },
+            },
+            {
+              key: "r2",
+              type: "COMMENTED",
+              from: { key: "comment" },
+              to: { key: "note" },
+            },
+          ],
+          return: [
+            "comment",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
+        });
+        console.log(result);
+        const comment: Comment = {
+          ...(result[0].comment.props as any),
+          author: {
+            name: result[0].authorName,
+            displayName: result[0].authorDisplayName,
+            avatar: result[0].authorAvatar || "",
+          } as any,
+        };
+        console.log(comment);
+      } else {
+        throw new Error("Client is not ready");
+      }
+    },
+    [appContainer.client, appContainer.signerAddress, note]
+  );
+
+  // Fetch MNS Profiles
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "mns") {
       appContainer.client
@@ -161,12 +231,12 @@ const FeedsContainer = createContainer(() => {
               }
             })
             .filter((x) => x);
-          console.log(feeds);
           setMNSProfiles(feeds as any);
         });
     }
   }, [appContainer.client, appContainer.tab]);
 
+  // Fetch Notes
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "notes") {
       appContainer.client
@@ -206,8 +276,8 @@ const FeedsContainer = createContainer(() => {
     }
   }, [appContainer.client, appContainer.tab]);
 
+  // Fetch Note
   useEffect(() => {
-    console.log(appContainer.params, appContainer.tab);
     if (
       appContainer.tab === Tab.Note &&
       appContainer.params.noteId &&
@@ -248,20 +318,38 @@ const FeedsContainer = createContainer(() => {
                 avatar: result[0].authorAvatar || "",
               },
             } as any;
-            console.log("fetched note: ", note);
             setNote(note);
           });
       }
     }
   }, [appContainer.client, appContainer.tab, appContainer.params, notes]);
 
+  // Fetch note comment
+  useEffect(() => {
+    if (!note) {
+      setComments([]);
+    } else if (appContainer.client) {
+      /*
+      appContainer.client.db({
+        match: [
+          {
+            key: "",
+          },
+        ],
+      });
+      */
+    }
+  }, [note, appContainer.client]);
+
   return {
     mnsProfiles,
     publishNote,
     deleteNote,
     updateNote,
+    makeComment,
     notes,
     note,
+    comments,
   };
 });
 

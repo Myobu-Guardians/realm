@@ -74,10 +74,19 @@ const AppContainer = createContainer(() => {
    * Get content from IPFS hash
    */
   const ipfsCat = useCallback(async (ipfsHash: string) => {
-    const res = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`, {
-      method: "GET",
-    });
-    return await res.text();
+    // Check if the ipfs hash is in cache
+    const cached = localStorage.getItem(`ipfs/${ipfsHash}`);
+    if (cached) {
+      return cached;
+    } else {
+      const res = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`, {
+        method: "GET",
+      });
+      const result = await res.text();
+      // Save to cache
+      localStorage.setItem(`ipfs/${ipfsHash}`, result);
+      return result;
+    }
   }, []);
 
   const setConnectedWalletMethod_ = useCallback(

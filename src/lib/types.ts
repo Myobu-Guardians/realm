@@ -53,6 +53,15 @@ export interface RealmNote extends NodeBase, Summary {
   };
 }
 
+export interface Comment extends NodeBase {
+  markdown: string;
+  author: {
+    name: string;
+    displayName: string;
+    avatar: string;
+  };
+}
+
 export enum EditorMode {
   Code = "code",
   Preview = "preview",
