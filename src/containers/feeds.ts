@@ -163,20 +163,21 @@ const FeedsContainer = createContainer(() => {
           ],
           create: [
             {
-              key: "r",
-              type: "COMMENTED",
-              from: { key: "author" },
-              to: {
-                key: "comment",
-                labels: ["Comment"],
-                props: {
-                  markdown,
-                },
+              key: "comment",
+              labels: ["Comment"],
+              props: {
+                markdown,
               },
             },
             {
+              key: "r",
+              type: "POSTED",
+              from: { key: "author" },
+              to: { key: "comment" },
+            },
+            {
               key: "r2",
-              type: "COMMENTED",
+              type: "COMMENTED_ON",
               from: { key: "comment" },
               to: { key: "note" },
             },
@@ -198,6 +199,7 @@ const FeedsContainer = createContainer(() => {
           } as any,
         };
         console.log(comment);
+        setComments((comments) => [...comments, comment]);
       } else {
         throw new Error("Client is not ready");
       }
@@ -242,8 +244,18 @@ const FeedsContainer = createContainer(() => {
       appContainer.client
         .db({
           match: [
-            { key: "note", labels: ["Note"] },
-            { key: "author", labels: ["MNS"] },
+            {
+              type: "POSTED",
+              from: {
+                key: "author",
+                labels: ["MNS"],
+              },
+              to: {
+                key: "note",
+                labels: ["Note"],
+              },
+              key: "r",
+            },
           ],
           where: {
             "author._owner": {
@@ -324,20 +336,70 @@ const FeedsContainer = createContainer(() => {
     }
   }, [appContainer.client, appContainer.tab, appContainer.params, notes]);
 
-  // Fetch note comment
+  // Reset note comments on note change
+  useEffect(() => {
+    if (appContainer.tab === Tab.Note) {
+      setComments([]);
+    }
+  }, [appContainer.tab]);
+
+  // Fetch note comments
   useEffect(() => {
     if (!note) {
       setComments([]);
     } else if (appContainer.client) {
-      /*
-      appContainer.client.db({
-        match: [
-          {
-            key: "",
+      appContainer.client
+        .db({
+          match: [
+            {
+              key: "r1",
+              type: "POSTED",
+              from: {
+                key: "author",
+              },
+              to: {
+                key: "comment",
+              },
+            },
+            {
+              key: "r2",
+              type: "COMMENTED_ON",
+              from: {
+                key: "comment",
+              },
+              to: {
+                key: "note",
+                labels: ["Note"],
+                props: {
+                  _id: note._id || "",
+                },
+              },
+            },
+          ],
+          orderBy: {
+            "comment._createdAt": MyobuDBOrder.ASC,
           },
-        ],
-      });
-      */
+          return: [
+            "comment",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
+        })
+        .then((result) => {
+          const comments = result.map((x) => {
+            return {
+              ...x.comment.props,
+              author: {
+                name: x.authorName,
+                displayName: x.authorDisplayName,
+                avatar: x.authorAvatar || "",
+              },
+            };
+          });
+          console.log(comments);
+          setComments(comments as any);
+        });
     }
   }, [note, appContainer.client]);
 

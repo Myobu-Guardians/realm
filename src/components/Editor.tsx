@@ -25,6 +25,7 @@ interface EditorProps {
   placeholder?: string;
   confirmButtonText: string;
   onConfirm: (markdown: string) => void;
+  disableInitialText?: boolean;
 }
 
 export default function Editor(props: EditorProps) {
@@ -34,9 +35,11 @@ export default function Editor(props: EditorProps) {
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
   const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.Code);
   const [markdown, setMarkdown] = useState(
-    props.noteMarkdown ||
-      localStorage.getItem("note/markdown") ||
-      "# Your note title goes here"
+    props.disableInitialText
+      ? ""
+      : props.noteMarkdown ||
+          localStorage.getItem("note/markdown") ||
+          "# Your note title goes here"
   );
 
   // Set editor

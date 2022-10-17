@@ -8,12 +8,15 @@ import Icon from "@mdi/react";
 import { siIpfs } from "simple-icons/icons";
 import {
   mdiArrowLeft,
+  mdiChevronLeft,
+  mdiComment,
   mdiPencil,
   mdiPencilOutline,
   mdiTrashCanOutline,
 } from "@mdi/js";
 import toastr from "toastr";
 import { useLocation, useNavigate } from "react-router-dom";
+import CommentCard from "./CommentCard";
 
 interface Props {
   showUpdateNoteEditor: (markdown: string) => void;
@@ -85,44 +88,43 @@ export default function NotePanel(props: Props) {
 
   return (
     <div className="relative p-1 sm:p-4">
-      {/* Check if history can go back */}
-      <div className="mb-10">
-        <button
-          className="btn btn-circle"
-          onClick={() => {
-            if (location.state?.from) {
-              navigation(location.state.from);
-            } else {
-              navigation("/");
-            }
-          }}
-        >
-          <Icon path={mdiArrowLeft} size={1}></Icon>
-        </button>
-      </div>
-
       {/* Top banner */}
       <div className="w-[800px] max-w-full mx-auto flex flex-row items-center mb-4 px-1 sm:px-0 py-2 bg-[#2A303C] sticky top-0">
-        {/* author */}
         <div className="flex flex-row items-center flex-1">
-          <div className="avatar mr-2">
-            <div className="w-[40px] rounded-full ring ring-white">
-              <img
-                src={
-                  feedsContainer.note.author?.avatar ||
-                  `https://avatars.dicebear.com/api/big-ears-neutral/${
-                    feedsContainer.note.author?.name || ""
-                  }.svg`
-                }
-                alt={feedsContainer.note.author?.name + ".m"}
-              ></img>
+          {/* Check if history can go back */}
+          <button
+            className="btn btn-circle"
+            onClick={() => {
+              if (location.state?.from) {
+                navigation(location.state.from);
+              } else {
+                navigation("/");
+              }
+            }}
+          >
+            <Icon path={mdiChevronLeft} size={1}></Icon>
+          </button>
+          {/* author */}
+          <div className="flex flex-row items-center">
+            <div className="avatar mr-2">
+              <div className="w-[40px] rounded-full ring ring-white">
+                <img
+                  src={
+                    feedsContainer.note.author?.avatar ||
+                    `https://avatars.dicebear.com/api/big-ears-neutral/${
+                      feedsContainer.note.author?.name || ""
+                    }.svg`
+                  }
+                  alt={feedsContainer.note.author?.name + ".m"}
+                ></img>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col text-sm">
-            <div className="font-bold">
-              {feedsContainer.note.author?.displayName}
+            <div className="flex flex-col text-sm">
+              <div className="font-bold">
+                {feedsContainer.note.author?.displayName}
+              </div>
+              <span>@{feedsContainer.note.author?.name}.m</span>
             </div>
-            <span>@{feedsContainer.note.author?.name}.m</span>
           </div>
         </div>
         <div className="flex-none flex flex-col sm:flex-row items-center">
@@ -172,12 +174,27 @@ export default function NotePanel(props: Props) {
       </div>
       {/* Note markdown preview */}
       <div
-        className={"preview w-[800px] max-w-full mx-auto"}
+        className={"preview w-[800px] max-w-full mx-auto mb-10"}
         style={{
           backgroundColor: "inherit",
         }}
         ref={previewElement}
       ></div>
+      {/* Comments */}
+      {feedsContainer.comments.length > 0 && (
+        <div className="w-[800px] max-w-full mx-auto">
+          <div className="mb-4 mt-40 text-lg font-bold border-l-4 pl-2 border-secondary">
+            Comments
+          </div>
+          {feedsContainer.comments.map((comment) => {
+            return (
+              <div key={comment._id} className={"mb-8"}>
+                <CommentCard comment={comment}></CommentCard>
+              </div>
+            );
+          })}
+        </div>
+      )}
       {/* Bottom banner */}
       <div className="w-[800px] max-w-full mx-auto flex flex-row items-center px-1 sm:px-0 py-2 bg-[#2A303C] sticky bottom-0 border-t-2 border-gray-600">
         <div className="flex-1">
@@ -186,7 +203,7 @@ export default function NotePanel(props: Props) {
             className="btn btn-outline btn-ghost"
             onClick={props.showMakeCommentEditor}
           >
-            <Icon path={mdiPencil} size={1} className={"mr-2"}></Icon>
+            <Icon path={mdiComment} size={1} className={"mr-2"}></Icon>
             Leave a comment
           </button>
         </div>

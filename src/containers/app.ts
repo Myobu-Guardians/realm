@@ -186,7 +186,7 @@ const AppContainer = createContainer(() => {
           return: ["profile"],
         })
         .then((result) => {
-          console.log(result);
+          console.log(result, signerAddress);
           if (result.length && result[0].profile) {
             setSignerProfile(result[0].profile.props as any);
           }

@@ -49,6 +49,7 @@ function App(props: AppProps) {
       } else {
         const summary = generateSummaryFromMarkdown(markdown);
         console.log(summary);
+        setShowPublishNoteEditor(false);
         try {
           toastr.info("Uploading to IPFS...");
           const ipfsHash = await appContainer.ipfsAdd(markdown);
@@ -57,7 +58,6 @@ function App(props: AppProps) {
           await feedsContainer.publishNote(note);
           toastr.success("Note published!");
           localStorage.removeItem("note/markdown");
-          setShowPublishNoteEditor(false);
         } catch (error) {
           console.error(error);
           toastr.error("Error publishing note");
@@ -76,6 +76,7 @@ function App(props: AppProps) {
       } else {
         const summary = generateSummaryFromMarkdown(markdown);
         console.log(summary);
+        setShowUpdateNoteEditor(false);
         try {
           const note = feedsContainer.note;
           toastr.info("Uploading to IPFS...");
@@ -88,7 +89,6 @@ function App(props: AppProps) {
           });
           toastr.success("Note updated!");
           localStorage.removeItem("note/markdown");
-          setShowUpdateNoteEditor(false);
         } catch (error) {
           console.error(error);
           toastr.error("Error updating note");
@@ -110,10 +110,11 @@ function App(props: AppProps) {
       } else if (!markdown) {
         return alert("Comment is empty");
       } else {
+        setShowMakeCommentEditor(false);
         try {
+          toastr.info(`Uploading comment...`);
           await feedsContainer.makeComment(markdown);
           toastr.success("Comment made!");
-          setShowMakeCommentEditor(false);
         } catch (error) {
           console.error(error);
           toastr.error("Error making comment");
@@ -152,7 +153,16 @@ function App(props: AppProps) {
                 setShowUpdateNoteEditor(true);
               }}
               showMakeCommentEditor={() => {
-                setShowMakeCommentEditor(true);
+                if (appContainer.signerProfile) {
+                  setShowMakeCommentEditor(true);
+                } else {
+                  toastr.error(
+                    "Please register for MNS (Myobu Name Service) to make comment"
+                  );
+                  setTimeout(() => {
+                    window.open(`https://protocol.myobu.io`, "_self");
+                  }, 2000);
+                }
               }}
             ></NotePanel>
           )}
@@ -289,10 +299,11 @@ function App(props: AppProps) {
           onClose={() => {
             setShowMakeCommentEditor(false);
           }}
-          noteMarkdown={"**I like this note!**"}
+          noteMarkdown={""}
           placeholder={"Leave a comment"}
           confirmButtonText={"Comment"}
           onConfirm={makeComment}
+          disableInitialText={true}
         ></Editor>
       )}
     </div>
