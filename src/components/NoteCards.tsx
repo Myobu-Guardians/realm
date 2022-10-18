@@ -1,3 +1,5 @@
+import { mdiTag } from "@mdi/js";
+import Icon from "@mdi/react";
 import { Link } from "react-router-dom";
 import FeedsContainer from "../containers/feeds";
 import { RealmNote } from "../lib/types";
@@ -66,7 +68,14 @@ export function NoteCards() {
   return (
     <div className="pt-2 sm:pt-12">
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
-        :NOTE
+        {feedsContainer.tagName ? (
+          <div className="flex flex-row items-center">
+            <Icon path={mdiTag} size={1} className={"mr-1"}></Icon>
+            <span>{feedsContainer.tagName}</span>
+          </div>
+        ) : (
+          <span>:NOTE</span>
+        )}
       </div>
       <div className="columns-1 sm:columns-[24rem]">
         {feedsContainer.notes.length === 0 ? (

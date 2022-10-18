@@ -9,7 +9,7 @@ import {
   generateForegroundColorBasedOnBackgroundColor,
   randomColorGenerator,
 } from "./lib/utils";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { RealmNote, Tab } from "./lib/types";
 import { ProfileCards } from "./components/ProfileCards";
 import { NoteCards } from "./components/NoteCards";
@@ -27,6 +27,7 @@ function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
   const params = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showPublishNoteEditor, setShowPublishNoteEditor] = useState(false);
   const [showUpdateNoteEditor, setShowUpdateNoteEditor] = useState(false);
   const [showMakeCommentEditor, setShowMakeCommentEditor] = useState(false);
@@ -128,8 +129,9 @@ function App(props: AppProps) {
 
   useEffect(() => {
     appContainer.setParams(params);
+    appContainer.setSearchParams(searchParams);
     appContainer.setTab(props.tab);
-  }, [params, props.tab]);
+  }, [params, searchParams, props.tab]);
 
   return (
     <div className="App">

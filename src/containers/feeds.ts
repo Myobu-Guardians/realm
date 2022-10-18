@@ -16,6 +16,7 @@ const FeedsContainer = createContainer(() => {
   const [note, setNote] = useState<RealmNote | undefined>(undefined);
   const [comments, setComments] = useState<Comment[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [tagName, setTagName] = useState<string | undefined>(undefined);
 
   const appContainer = AppContainer.useContainer();
 
@@ -240,6 +241,7 @@ const FeedsContainer = createContainer(() => {
               props: {
                 _owner: appContainer.signerAddress,
                 name: tagName,
+                lowerCaseName: tagName.toLowerCase(),
               },
             },
             {
@@ -286,7 +288,7 @@ const FeedsContainer = createContainer(() => {
                 labels: ["Tag"],
                 props: {
                   _owner: appContainer.signerAddress,
-                  name: tagName,
+                  lowerCaseName: tagName.toLowerCase(),
                 },
               },
             },
@@ -369,6 +371,9 @@ const FeedsContainer = createContainer(() => {
   // Fetch Notes
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "notes") {
+      const tag = appContainer.searchParams?.get("tag");
+      setTagName(tag || undefined);
+
       appContainer.client
         .db({
           match: [
@@ -384,11 +389,36 @@ const FeedsContainer = createContainer(() => {
               },
               key: "r",
             },
+            ...(tag
+              ? [
+                  {
+                    key: "r2",
+                    type: "TAGGED_WITH",
+                    from: {
+                      key: "note",
+                    },
+                    to: {
+                      key: "tag",
+                      labels: ["Tag"],
+                      props: {
+                        lowerCaseName: tag.toLowerCase(),
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
           where: {
             "author._owner": {
               $eq: "$note._owner",
             },
+            ...(tag
+              ? {
+                  "note._owner": {
+                    $eq: "$tag._owner",
+                  },
+                }
+              : {}),
           },
           orderBy: {
             "note._createdAt": MyobuDBOrder.DESC,
@@ -414,7 +444,7 @@ const FeedsContainer = createContainer(() => {
           setNotes(notes as any);
         });
     }
-  }, [appContainer.client, appContainer.tab]);
+  }, [appContainer.client, appContainer.tab, appContainer.searchParams]);
 
   // Fetch Note
   useEffect(() => {
@@ -555,6 +585,7 @@ const FeedsContainer = createContainer(() => {
     note,
     comments,
     tags,
+    tagName,
   };
 });
 

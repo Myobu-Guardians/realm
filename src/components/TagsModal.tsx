@@ -78,6 +78,11 @@ export default function TagsModal(props: TagsModalProps) {
               onChange={(e) => {
                 setTagInput(e.target.value);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addTags();
+                }
+              }}
             ></input>
             <button
               className="btn btn-primary ml-2"
@@ -88,20 +93,22 @@ export default function TagsModal(props: TagsModalProps) {
             </button>
           </div>
           <div className="flex flex-row items-center mt-4">
-            {feedsContainer.tags.map((tag) => {
-              return (
-                <span
-                  className="badge badge-ghost cursor-pointer mr-2 text-lg cursor-pointer"
-                  key={`manage-tag-${tag.name}`}
-                  onClick={() => {
-                    deleteTag(tag);
-                  }}
-                >
-                  <Icon path={mdiClose} size={0.6} className={"mr-1"}></Icon>
-                  {tag.name}
-                </span>
-              );
-            })}
+            {feedsContainer.tags
+              .sort((x, y) => x.name.localeCompare(y.name))
+              .map((tag) => {
+                return (
+                  <span
+                    className="badge badge-ghost cursor-pointer mr-2 text-lg cursor-pointer"
+                    key={`manage-tag-${tag.name}`}
+                    onClick={() => {
+                      deleteTag(tag);
+                    }}
+                  >
+                    <Icon path={mdiClose} size={0.6} className={"mr-1"}></Icon>
+                    {tag.name}
+                  </span>
+                );
+              })}
           </div>
         </div>
       </div>

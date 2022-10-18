@@ -15,7 +15,7 @@ import {
   mdiTrashCanOutline,
 } from "@mdi/js";
 import toastr from "toastr";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import CommentCard from "./CommentCard";
 
 interface Props {
@@ -184,21 +184,23 @@ export default function NotePanel(props: Props) {
       {/* Tags */}
       <div className="w-[800px] max-w-full mx-auto mb-10">
         <div className="flex flex-row items-center">
-          {feedsContainer.tags.map((tag) => {
-            return (
-              <span
-                className="badge badge-ghost mr-2"
-                onClick={() => {
-                  // navigation(`/tags/${tag}`);
-                }}
-                key={`tag-` + tag.name}
-              >
-                {" "}
-                <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
-                {tag.name}
-              </span>
-            );
-          })}
+          {feedsContainer.tags
+            .sort((x, y) => x.name.localeCompare(y.name))
+            .map((tag) => {
+              return (
+                <Link to={`/notes?tag=${tag.name}`} key={`tag-` + tag.name}>
+                  <span
+                    className="badge badge-ghost mr-2"
+                    onClick={() => {
+                      // navigation(`/tags/${tag}`);
+                    }}
+                  >
+                    <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
+                    {tag.name}
+                  </span>
+                </Link>
+              );
+            })}
           <span
             className="badge badge-info cursor-pointer"
             onClick={props.showEditTagsModal}

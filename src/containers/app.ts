@@ -4,7 +4,7 @@ import { createContainer } from "unstated-next";
 import MyobuProtocolClient from "myobu-protocol-client";
 import { MNSProfile, Tab, WalletConnectMethod } from "../lib/types";
 import { NFTStorage } from "nft.storage";
-import { Params } from "react-router-dom";
+import { Params, useSearchParams } from "react-router-dom";
 
 interface ArweaveAddArgs {
   content: string;
@@ -36,6 +36,9 @@ const AppContainer = createContainer(() => {
   );
   const [tab, setTab] = useState<Tab>(Tab.Unknown);
   const [params, setParams] = useState<Params<string>>({});
+  const [searchParams, setSearchParams] = useState<URLSearchParams | undefined>(
+    undefined
+  );
 
   const ipfsAdd = useCallback(
     async (content: string): Promise<string> => {
@@ -210,6 +213,8 @@ const AppContainer = createContainer(() => {
     setTab,
     params,
     setParams,
+    searchParams,
+    setSearchParams,
   };
 });
 
