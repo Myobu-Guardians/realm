@@ -7,11 +7,11 @@ import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
 import { siIpfs } from "simple-icons/icons";
 import {
-  mdiArrowLeft,
   mdiChevronLeft,
   mdiComment,
   mdiPencil,
-  mdiPencilOutline,
+  mdiPlus,
+  mdiTag,
   mdiTrashCanOutline,
 } from "@mdi/js";
 import toastr from "toastr";
@@ -21,6 +21,7 @@ import CommentCard from "./CommentCard";
 interface Props {
   showUpdateNoteEditor: (markdown: string) => void;
   showMakeCommentEditor: () => void;
+  showEditTagsModal: () => void;
 }
 
 export default function NotePanel(props: Props) {
@@ -161,11 +162,11 @@ export default function NotePanel(props: Props) {
                   ></Icon>
                 </button>
                 <button
-                  className="btn btn-circle btn-sm ml-2"
-                  title={"Edit this note"}
+                  className="btn btn-circle btn-success btn-sm ml-2"
+                  title={"Edit note content"}
                   onClick={() => props.showUpdateNoteEditor(markdown)}
                 >
-                  <Icon className="" path={mdiPencilOutline} size={1}></Icon>
+                  <Icon className="" path={mdiPencil} size={1}></Icon>
                 </button>
               </>
             )}
@@ -180,10 +181,37 @@ export default function NotePanel(props: Props) {
         }}
         ref={previewElement}
       ></div>
+      {/* Tags */}
+      <div className="w-[800px] max-w-full mx-auto mb-10">
+        <div className="flex flex-row items-center">
+          {feedsContainer.tags.map((tag) => {
+            return (
+              <span
+                className="badge badge-ghost mr-2"
+                onClick={() => {
+                  // navigation(`/tags/${tag}`);
+                }}
+                key={`tag-` + tag.name}
+              >
+                {" "}
+                <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
+                {tag.name}
+              </span>
+            );
+          })}
+          <span
+            className="badge badge-info cursor-pointer"
+            onClick={props.showEditTagsModal}
+          >
+            <Icon path={mdiPlus} size={0.5}></Icon>
+            Manage tags
+          </span>
+        </div>
+      </div>
       {/* Comments */}
       {feedsContainer.comments.length > 0 && (
         <div className="w-[800px] max-w-full mx-auto">
-          <div className="mb-4 mt-40 text-lg font-bold border-l-4 pl-2 border-secondary">
+          <div className="mb-4 mt-10 text-lg font-bold border-l-4 pl-2 border-secondary">
             Comments
           </div>
           {feedsContainer.comments.map((comment) => {

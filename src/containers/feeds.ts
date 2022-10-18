@@ -2,7 +2,7 @@ import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import { Summary } from "../lib/note";
-import { Comment, MNSProfile, RealmNote, Tab } from "../lib/types";
+import { Comment, MNSProfile, RealmNote, Tab, Tag } from "../lib/types";
 import AppContainer from "./app";
 
 interface UpdateNoteArgs extends Summary {
@@ -15,6 +15,7 @@ const FeedsContainer = createContainer(() => {
   const [notes, setNotes] = useState<RealmNote[]>([]);
   const [note, setNote] = useState<RealmNote | undefined>(undefined);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
 
   const appContainer = AppContainer.useContainer();
 
@@ -33,19 +34,26 @@ const FeedsContainer = createContainer(() => {
           ],
           create: [
             {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                summary: note.summary,
+                images: note.images,
+                ipfsHash: note.ipfsHash,
+                arweaveId: note.arweaveId || "",
+              },
+            },
+            {
               key: "r",
               type: "POSTED",
               from: { key: "author" },
-              to: {
-                key: "note",
-                labels: ["Note"],
-                props: {
-                  summary: note.summary,
-                  images: note.images,
-                  ipfsHash: note.ipfsHash,
-                  arweaveId: note.arweaveId || "",
-                },
-              },
+              to: { key: "note" },
+            },
+            {
+              key: "r2",
+              type: "SUBSCRIBED_TO",
+              from: { key: "author" },
+              to: { key: "note" },
             },
           ],
           return: [
@@ -189,7 +197,6 @@ const FeedsContainer = createContainer(() => {
             { key: "author.avatar", as: "authorAvatar" },
           ],
         });
-        console.log(result);
         const comment: Comment = {
           ...(result[0].comment.props as any),
           author: {
@@ -198,7 +205,7 @@ const FeedsContainer = createContainer(() => {
             avatar: result[0].authorAvatar || "",
           } as any,
         };
-        console.log(comment);
+        console.log("makeComment: ", comment);
         setComments((comments) => [...comments, comment]);
       } else {
         throw new Error("Client is not ready");
@@ -206,6 +213,127 @@ const FeedsContainer = createContainer(() => {
     },
     [appContainer.client, appContainer.signerAddress, note]
   );
+
+  const addTagToNote = useCallback(
+    async (tagName: string): Promise<Tag | undefined> => {
+      if (
+        appContainer.client &&
+        appContainer.signerAddress &&
+        note &&
+        note._id
+      ) {
+        const result = await appContainer.client.db({
+          match: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                _id: note._id,
+                _owner: appContainer.signerAddress,
+              },
+            },
+          ],
+          merge: [
+            {
+              key: "tag",
+              labels: ["Tag"],
+              props: {
+                _owner: appContainer.signerAddress,
+                name: tagName,
+              },
+            },
+            {
+              key: "r",
+              type: "TAGGED_WITH",
+              from: { key: "note" },
+              to: { key: "tag" },
+            },
+          ],
+          return: ["tag"],
+        });
+        console.log("addTagToNote: ", result);
+        const tag = result[0].tag.props as any;
+        setTags((tags) => [...tags, tag]);
+      } else {
+        return undefined;
+      }
+    },
+    [appContainer.client, appContainer.signerAddress, note]
+  );
+
+  const deleteTagFromNote = useCallback(
+    async (tagName: string) => {
+      if (
+        appContainer.client &&
+        appContainer.signerAddress &&
+        note &&
+        note._id
+      ) {
+        const result = await appContainer.client.db({
+          match: [
+            {
+              type: "TAGGED_WITH",
+              key: "r",
+              from: {
+                key: "note",
+                labels: ["Note"],
+                props: {
+                  _id: note._id,
+                },
+              },
+              to: {
+                key: "tag",
+                labels: ["Tag"],
+                props: {
+                  _owner: appContainer.signerAddress,
+                  name: tagName,
+                },
+              },
+            },
+          ],
+          delete: ["r"],
+          return: ["tag"],
+        });
+        console.log("deleteTagFromNote: ", result);
+        setTags((tags) => {
+          return tags.filter((t) => t.name !== tagName);
+        });
+      }
+    },
+    [appContainer.client, appContainer.signerAddress, note]
+  );
+
+  const getTagsOfNote = useCallback(async (): Promise<Tag[]> => {
+    if (appContainer.client && note && note._id && note._owner) {
+      const result = await appContainer.client.db({
+        match: [
+          {
+            type: "TAGGED_WITH",
+            key: "r",
+            from: {
+              key: "note",
+              labels: ["Note"],
+              props: {
+                _id: note._id,
+              },
+            },
+            to: {
+              key: "tag",
+              labels: ["Tag"],
+              props: {
+                _owner: note._owner,
+              },
+            },
+          },
+        ],
+        return: ["tag"],
+      });
+      console.log("getTagsOfNote: ", result);
+      return result.map((r) => r.tag.props) as any;
+    } else {
+      return [];
+    }
+  }, [appContainer.client, note]);
 
   // Fetch MNS Profiles
   useEffect(() => {
@@ -340,8 +468,19 @@ const FeedsContainer = createContainer(() => {
   useEffect(() => {
     if (appContainer.tab === Tab.Note) {
       setComments([]);
+      setTags([]);
     }
   }, [appContainer.tab]);
+
+  useEffect(() => {
+    getTagsOfNote()
+      .then((tags) => {
+        setTags(tags);
+      })
+      .catch(() => {
+        setTags([]);
+      });
+  }, [getTagsOfNote]);
 
   // Fetch note comments
   useEffect(() => {
@@ -397,7 +536,7 @@ const FeedsContainer = createContainer(() => {
               },
             };
           });
-          console.log(comments);
+          console.log("fetch comments: ", comments);
           setComments(comments as any);
         });
     }
@@ -409,9 +548,13 @@ const FeedsContainer = createContainer(() => {
     deleteNote,
     updateNote,
     makeComment,
+    addTagToNote,
+    deleteTagFromNote,
+    getTagsOfNote,
     notes,
     note,
     comments,
+    tags,
   };
 });
 

@@ -17,6 +17,7 @@ import NotePanel from "./components/NotePanel";
 import { generateSummaryFromMarkdown } from "./lib/note";
 import toastr from "toastr";
 import NavBar from "./components/Navbar";
+import TagsModal from "./components/TagsModal";
 
 interface AppProps {
   tab: Tab;
@@ -29,6 +30,7 @@ function App(props: AppProps) {
   const [showPublishNoteEditor, setShowPublishNoteEditor] = useState(false);
   const [showUpdateNoteEditor, setShowUpdateNoteEditor] = useState(false);
   const [showMakeCommentEditor, setShowMakeCommentEditor] = useState(false);
+  const [showEditTagsModal, setShowEditTagsModal] = useState(false);
   const [noteMarkdown, setNoteMarkdown] = useState("");
 
   const connectWalletButton = useMemo(() => {
@@ -163,6 +165,9 @@ function App(props: AppProps) {
                     window.open(`https://protocol.myobu.io`, "_self");
                   }, 2000);
                 }
+              }}
+              showEditTagsModal={() => {
+                setShowEditTagsModal(true);
               }}
             ></NotePanel>
           )}
@@ -305,6 +310,13 @@ function App(props: AppProps) {
           onConfirm={makeComment}
           disableInitialText={true}
         ></Editor>
+      )}
+      {showEditTagsModal && (
+        <TagsModal
+          onClose={() => {
+            setShowEditTagsModal(false);
+          }}
+        ></TagsModal>
       )}
     </div>
   );

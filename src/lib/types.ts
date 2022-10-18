@@ -62,6 +62,10 @@ export interface Comment extends NodeBase {
   };
 }
 
+export interface Tag extends NodeBase {
+  name: string;
+}
+
 export enum EditorMode {
   Code = "code",
   Preview = "preview",

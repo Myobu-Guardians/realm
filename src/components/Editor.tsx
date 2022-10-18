@@ -3,9 +3,8 @@ import { Editor as CodeMirrorEditor } from "codemirror";
 import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
-import { mdiLanguageMarkdown } from "@mdi/js";
-import toastr from "toastr";
-import { EditorMode, RealmNote } from "../lib/types";
+import { mdiClose, mdiLanguageMarkdown, mdiPublish, mdiTag } from "@mdi/js";
+import { EditorMode } from "../lib/types";
 import { renderPreview } from "@0xgg/echomd/preview";
 const EchoMD = require("@0xgg/echomd/core");
 
@@ -155,16 +154,21 @@ export default function Editor(props: EditorProps) {
                 ></input>
               </label>
             </div>
-            <button className="btn btn-secondary mr-2" onClick={props.onClose}>
-              Close
-            </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary mr-2"
               onClick={() => {
                 props.onConfirm(markdown);
               }}
             >
+              <Icon path={mdiPublish} size={1}></Icon>
               {props.confirmButtonText}
+            </button>
+            <button
+              className="btn btn-secondary btn-circle"
+              onClick={props.onClose}
+              title={"Close the editor"}
+            >
+              <Icon path={mdiClose} size={1}></Icon>
             </button>
           </div>
         </div>
