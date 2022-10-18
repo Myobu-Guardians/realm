@@ -82,7 +82,7 @@ const AppContainer = createContainer(() => {
     if (cached) {
       return cached;
     } else {
-      const res = await fetch(`https://cloudflare-ipfs.com/ipfs/${ipfsHash}`, {
+      const res = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`, {
         method: "GET",
       });
       const result = await res.text();

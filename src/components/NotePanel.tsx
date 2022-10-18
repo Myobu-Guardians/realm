@@ -61,7 +61,7 @@ export default function NotePanel(props: Props) {
         .catch((err) => {
           console.error(err);
           setMarkdown(
-            `Error loading note from IPFS [${feedsContainer.note?.ipfsHash}](https://cloudflare-ipfs.com/ipfs/${feedsContainer.note?.ipfsHash})`
+            `Error loading note from IPFS [${feedsContainer.note?.ipfsHash}](https://ipfs.io/ipfs/${feedsContainer.note?.ipfsHash})`
           );
         });
     }
@@ -136,7 +136,7 @@ export default function NotePanel(props: Props) {
           <div className="flex flex-row items-center">
             {/* ipfs */}
             <a
-              href={`https://cloudflare-ipfs.com/ipfs/${feedsContainer.note.ipfsHash}`}
+              href={`https://ipfs.io/ipfs/${feedsContainer.note.ipfsHash}`}
               target={"_blank"}
               rel={"noreferrer"}
             >
