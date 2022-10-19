@@ -35,32 +35,34 @@ export function UserPanel() {
       </div>
       {feedsContainer.userProfile && feedsContainer.userTags.length > 0 && (
         <div className="flex flex-row items-center mb-4">
-          {feedsContainer.userTags.map((tag) => {
-            return (
-              <span
-                key={`user-tag-` + tag._id}
-                className={
-                  "badge mr-2 cursor-pointer " +
-                  (feedsContainer.userNotesTagName === tag.name
-                    ? "badge-info"
-                    : "badge-ghost")
-                }
-                onClick={() => {
-                  if (feedsContainer.userNotesTagName === tag.name) {
-                    navigate(`/${feedsContainer.userProfile?.name}.m`);
-                  } else {
-                    navigate(
-                      `/${feedsContainer.userProfile?.name}.m?tag=${tag.name}`
-                    );
+          {feedsContainer.userTags
+            .sort((x, y) => x.name.localeCompare(y.name))
+            .map((tag) => {
+              return (
+                <span
+                  key={`user-tag-` + tag._id}
+                  className={
+                    "badge mr-2 cursor-pointer " +
+                    (feedsContainer.userNotesTagName === tag.name
+                      ? "badge-info"
+                      : "badge-ghost")
                   }
-                }}
-              >
-                <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
-                {tag.name}{" "}
-                <span className="ml-1 text-gray-600">{tag.noteCount}</span>
-              </span>
-            );
-          })}
+                  onClick={() => {
+                    if (feedsContainer.userNotesTagName === tag.name) {
+                      navigate(`/${feedsContainer.userProfile?.name}.m`);
+                    } else {
+                      navigate(
+                        `/${feedsContainer.userProfile?.name}.m?tag=${tag.name}`
+                      );
+                    }
+                  }}
+                >
+                  <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
+                  {tag.name}{" "}
+                  <span className="ml-1 text-gray-600">{tag.noteCount}</span>
+                </span>
+              );
+            })}
         </div>
       )}
       {feedsContainer.userNotes ? (
