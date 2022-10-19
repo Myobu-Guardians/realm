@@ -21,9 +21,7 @@ export function UserPanel() {
           labels={["MNS"]}
         ></MNSProfileCard>
       ) : (
-        <div className="text-primary-content text-left">
-          Loading user profile
-        </div>
+        <div className="text-primary-content text-left">Loading :MNS</div>
       )}
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none mt-10">
         {feedsContainer.tagName ? (
@@ -78,7 +76,7 @@ export function UserPanel() {
             })
           )
         ) : (
-          <div className="text-primary-content text-left">Loading notes</div>
+          <div className="text-primary-content text-left">Loading :Note</div>
         )}
       </div>
     </div>

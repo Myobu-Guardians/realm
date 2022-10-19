@@ -5,21 +5,39 @@ import { sanitizeTag, Summary } from "../lib/note";
 import { Comment, MNSProfile, RealmNote, Tab, Tag } from "../lib/types";
 import AppContainer from "./app";
 
+const itemsPerPage = 1;
+
 interface UpdateNoteArgs extends Summary {
   noteId: string;
   ipfsHash: string;
 }
 
 const FeedsContainer = createContainer(() => {
-  const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[]>([]);
+  // :MNS
+  const [mnsProfiles, setMNSProfiles] = useState<MNSProfile[] | undefined>(
+    undefined
+  );
+  const [hasMoreMNSProfiles, setHasMoreMNSProfiles] = useState<boolean>(true);
+  const [mnsProfilesPage, setMNSProfilesPage] = useState<number>(0);
+  const [isLoadingMNSProfiles, setIsLoadingMNSProfiles] =
+    useState<boolean>(false);
+
+  // :Note
   const [notes, setNotes] = useState<RealmNote[]>([]);
+  const [hasMoreNotes, setHasMoreNotes] = useState<boolean>(true);
+  const [notesPage, setNotesPage] = useState<number>(0);
+  const [tagName, setTagName] = useState<string | undefined>(undefined);
+
+  // NotePanel
   const [note, setNote] = useState<RealmNote | undefined>(undefined);
   const [comments, setComments] = useState<Comment[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [tagName, setTagName] = useState<string | undefined>(undefined);
+
+  // UserPanel
   const [userNotes, setUserNotes] = useState<RealmNote[] | undefined>(
     undefined
   );
+  const [hasMoreUserNotes, setHasMoreUserNotes] = useState<boolean>(true);
   const [userProfile, setUserProfile] = useState<MNSProfile | undefined>(
     undefined
   );
@@ -344,9 +362,14 @@ const FeedsContainer = createContainer(() => {
     }
   }, [appContainer.client, note]);
 
+  const loadMoreMNSProfiles = useCallback(async () => {
+    setMNSProfilesPage((page) => page + 1);
+  }, []);
+
   // Fetch MNS Profiles
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "mns") {
+      setIsLoadingMNSProfiles(true);
       appContainer.client
         .db({
           match: [
@@ -355,13 +378,15 @@ const FeedsContainer = createContainer(() => {
               labels: ["MNS"],
             },
           ],
+          limit: itemsPerPage,
+          skip: mnsProfilesPage * itemsPerPage,
           orderBy: {
             "profile._createdAt": MyobuDBOrder.DESC,
           },
           return: ["profile"],
         })
         .then((result) => {
-          const feeds = result
+          const profiles = result
             .map((x) => {
               if (x.profile) {
                 return x.profile.props;
@@ -370,10 +395,23 @@ const FeedsContainer = createContainer(() => {
               }
             })
             .filter((x) => x);
-          setMNSProfiles(feeds as any);
+          setHasMoreMNSProfiles(profiles.length === itemsPerPage);
+          setMNSProfiles((oldProfiles) => {
+            return (
+              ([...(oldProfiles || []), ...profiles] as MNSProfile[])
+                // Remove duplicates
+                .filter((p, index, self) => {
+                  return index === self.findIndex((t) => t._id === p._id);
+                })
+            );
+          });
+          setIsLoadingMNSProfiles(false);
+        })
+        .catch((error) => {
+          setIsLoadingMNSProfiles(false);
         });
     }
-  }, [appContainer.client, appContainer.tab]);
+  }, [appContainer.client, appContainer.tab, mnsProfilesPage]);
 
   // Fetch Notes
   useEffect(() => {
@@ -448,6 +486,7 @@ const FeedsContainer = createContainer(() => {
               },
             };
           });
+          console.log("fetched notes: ", notes);
           setNotes(notes as any);
         });
     }
@@ -726,7 +765,6 @@ const FeedsContainer = createContainer(() => {
   }, [note, appContainer.client]);
 
   return {
-    mnsProfiles,
     publishNote,
     deleteNote,
     updateNote,
@@ -734,12 +772,18 @@ const FeedsContainer = createContainer(() => {
     addTagToNote,
     deleteTagFromNote,
     getTagsOfNote,
+    loadMoreMNSProfiles,
+    mnsProfiles,
+    hasMoreMNSProfiles,
+    isLoadingMNSProfiles,
     notes,
+    hasMoreNotes,
     note,
     comments,
     tags,
     tagName,
     userNotes,
+    hasMoreUserNotes,
     userProfile,
     userTags,
   };
