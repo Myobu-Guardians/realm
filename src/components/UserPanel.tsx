@@ -56,7 +56,8 @@ export function UserPanel() {
                 }}
               >
                 <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
-                {tag.name} {tag.noteCount}
+                {tag.name}{" "}
+                <span className="ml-1 text-gray-600">{tag.noteCount}</span>
               </span>
             );
           })}
