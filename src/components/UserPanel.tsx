@@ -24,10 +24,10 @@ export function UserPanel() {
         <div className="text-primary-content text-left">Loading :MNS</div>
       )}
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none mt-10">
-        {feedsContainer.tagName ? (
+        {feedsContainer.userNotesTagName ? (
           <div className="flex flex-row items-center">
             <Icon path={mdiTag} size={1} className={"mr-1"}></Icon>
-            <span>{feedsContainer.tagName}</span>
+            <span>{feedsContainer.userNotesTagName}</span>
           </div>
         ) : (
           <span>:NOTE</span>
@@ -41,12 +41,12 @@ export function UserPanel() {
                 key={`user-tag-` + tag._id}
                 className={
                   "badge mr-2 cursor-pointer " +
-                  (feedsContainer.tagName === tag.name
+                  (feedsContainer.userNotesTagName === tag.name
                     ? "badge-info"
                     : "badge-ghost")
                 }
                 onClick={() => {
-                  if (feedsContainer.tagName === tag.name) {
+                  if (feedsContainer.userNotesTagName === tag.name) {
                     navigate(`/${feedsContainer.userProfile?.name}.m`);
                   } else {
                     navigate(
@@ -62,23 +62,36 @@ export function UserPanel() {
           })}
         </div>
       )}
-      <div className="columns-1 sm:columns-[24rem]">
-        {feedsContainer.userNotes ? (
-          feedsContainer.userNotes.length === 0 ? (
-            <div className="text-primary-content text-left">No notes found</div>
-          ) : (
-            feedsContainer.userNotes.map((note) => {
+      {feedsContainer.userNotes ? (
+        <>
+          <div className="columns-1 sm:columns-[24rem]">
+            {feedsContainer.userNotes.map((note) => {
               return (
                 <div key={note._id} className={"mb-2 sm:m-2"}>
                   <NoteCard note={note}></NoteCard>
                 </div>
               );
-            })
-          )
-        ) : (
-          <div className="text-primary-content text-left">Loading :Note</div>
-        )}
-      </div>
+            })}
+          </div>
+          {feedsContainer.hasMoreUserNotes ? (
+            <div className="ml-2 my-10 text-center">
+              <button
+                className="btn btn-accent"
+                disabled={feedsContainer.isLoadingUserNotes}
+                onClick={feedsContainer.loadMoreUserNotes}
+              >
+                {feedsContainer.isLoadingUserNotes ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          ) : (
+            <div className="ml-2 my-10 text-center">
+              <span className="text-primary-content">No more :Note</span>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-primary-content text-left">Loading :Note</div>
+      )}
     </div>
   );
 }

@@ -36,7 +36,7 @@ export function ProfileCards() {
             </div>
           ) : (
             <div className="ml-2 my-10 text-center">
-              <span className="text-primary-content">No more profiles</span>
+              <span className="text-primary-content">No more :MNS</span>
             </div>
           )}
         </>

@@ -5,7 +5,7 @@ import { sanitizeTag, Summary } from "../lib/note";
 import { Comment, MNSProfile, RealmNote, Tab, Tag } from "../lib/types";
 import AppContainer from "./app";
 
-const itemsPerPage = 1;
+const itemsPerPage = 20;
 
 interface UpdateNoteArgs extends Summary {
   noteId: string;
@@ -27,7 +27,9 @@ const FeedsContainer = createContainer(() => {
   const [hasMoreNotes, setHasMoreNotes] = useState<boolean>(true);
   const [notesPage, setNotesPage] = useState<number>(0);
   const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
-  const [tagName, setTagName] = useState<string | undefined>(undefined);
+  const [notesTagName, setNotesTagName] = useState<string | undefined>(
+    undefined
+  );
 
   // NotePanel
   const [note, setNote] = useState<RealmNote | undefined>(undefined);
@@ -44,6 +46,9 @@ const FeedsContainer = createContainer(() => {
   );
   const [userTags, setUserTags] = useState<Tag[]>([]);
   const [userNotesPage, setUserNotesPage] = useState<number>(0);
+  const [userNotesTagName, setUserNotesTagName] = useState<string | undefined>(
+    undefined
+  );
   const [isLoadingUserNotes, setIsLoadingUserNotes] = useState<boolean>(false);
 
   const appContainer = AppContainer.useContainer();
@@ -434,10 +439,10 @@ const FeedsContainer = createContainer(() => {
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "notes") {
       const tag = appContainer.searchParams?.get("tag") || undefined;
-      if (tag !== tagName) {
+      if (tag !== notesTagName) {
         setNotesPage(0);
         setNotes(undefined);
-        setTagName(tag || undefined);
+        setNotesTagName(tag || undefined);
         return;
       }
 
@@ -533,7 +538,7 @@ const FeedsContainer = createContainer(() => {
     appContainer.tab,
     appContainer.searchParams,
     notesPage,
-    tagName,
+    notesTagName,
   ]);
 
   // Fetch User Profile
@@ -547,6 +552,7 @@ const FeedsContainer = createContainer(() => {
 
       if (!userProfile || (userProfile && userProfile.name !== username)) {
         setUserProfile(undefined);
+        setUserNotesPage(0);
         setUserNotes(undefined);
         setUserTags([]);
 
@@ -578,6 +584,14 @@ const FeedsContainer = createContainer(() => {
   // Fetch User Notes
   useEffect(() => {
     if (appContainer.client && userProfile) {
+      const tag = appContainer.searchParams?.get("tag") || undefined;
+      if (tag !== userNotesTagName) {
+        setUserNotesPage(0);
+        setUserNotes(undefined);
+        setUserNotesTagName(tag || undefined);
+        return;
+      }
+      setIsLoadingUserNotes(true);
       appContainer.client
         .db({
           match: [
@@ -600,7 +614,7 @@ const FeedsContainer = createContainer(() => {
                 },
               },
             },
-            ...(tagName
+            ...(userNotesTagName
               ? [
                   {
                     key: "r2",
@@ -612,7 +626,7 @@ const FeedsContainer = createContainer(() => {
                       key: "tag",
                       labels: ["Tag"],
                       props: {
-                        sanitizedName: sanitizeTag(tagName),
+                        sanitizedName: sanitizeTag(userNotesTagName),
                         _owner: userProfile._owner || "",
                       },
                     },
@@ -623,6 +637,8 @@ const FeedsContainer = createContainer(() => {
           orderBy: {
             "note._createdAt": MyobuDBOrder.DESC,
           },
+          skip: userNotesPage * itemsPerPage,
+          limit: itemsPerPage,
           return: [
             "note",
             { key: "author.displayName", as: "authorDisplayName" },
@@ -641,18 +657,29 @@ const FeedsContainer = createContainer(() => {
               },
             };
           });
-          setUserNotes(notes as any);
+          setHasMoreUserNotes(notes.length === itemsPerPage);
+          setUserNotes((oldNotes) => {
+            return (
+              ([...(oldNotes || []), ...notes] as RealmNote[])
+                // Remove duplicates
+                .filter((p, index, self) => {
+                  return index === self.findIndex((t) => t._id === p._id);
+                })
+            );
+          });
+          setIsLoadingUserNotes(false);
+        })
+        .catch((error) => {
+          setIsLoadingUserNotes(false);
         });
     }
-  }, [appContainer.client, userProfile, tagName]);
-
-  // Set User Tag
-  useEffect(() => {
-    if (appContainer.tab === Tab.User) {
-      const tag = appContainer.searchParams?.get("tag") || undefined;
-      setTagName(tag || undefined);
-    }
-  }, [appContainer.tab, appContainer.searchParams]);
+  }, [
+    appContainer.client,
+    appContainer.searchParams,
+    userProfile,
+    userNotesTagName,
+    userNotesPage,
+  ]);
 
   // Fetch User Tags
   useEffect(() => {
@@ -830,12 +857,13 @@ const FeedsContainer = createContainer(() => {
     note,
     comments,
     tags,
-    tagName,
+    notesTagName,
     userNotes,
     hasMoreUserNotes,
     isLoadingUserNotes,
     userProfile,
     userTags,
+    userNotesTagName,
   };
 });
 

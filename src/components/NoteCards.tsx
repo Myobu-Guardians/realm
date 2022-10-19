@@ -84,10 +84,10 @@ export function NoteCards() {
   return (
     <div className="pt-2 sm:pt-12">
       <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
-        {feedsContainer.tagName ? (
+        {feedsContainer.notesTagName ? (
           <div className="flex flex-row items-center">
             <Icon path={mdiTag} size={1} className={"mr-1"}></Icon>
-            <span>{feedsContainer.tagName}</span>
+            <span>{feedsContainer.notesTagName}</span>
           </div>
         ) : (
           <span>:NOTE</span>
@@ -116,7 +116,7 @@ export function NoteCards() {
             </div>
           ) : (
             <div className="ml-2 my-10 text-center">
-              <span className="text-primary-content">No more profiles</span>
+              <span className="text-primary-content">No more :Note</span>
             </div>
           )}
         </>
