@@ -23,6 +23,7 @@ const FeedsContainer = createContainer(() => {
   const [userProfile, setUserProfile] = useState<MNSProfile | undefined>(
     undefined
   );
+  const [userTags, setUserTags] = useState<Tag[]>([]);
 
   const appContainer = AppContainer.useContainer();
 
@@ -464,6 +465,7 @@ const FeedsContainer = createContainer(() => {
       if (!userProfile || (userProfile && userProfile.name !== username)) {
         setUserProfile(undefined);
         setUserNotes(undefined);
+        setUserTags([]);
 
         // Fetch User Profile
         appContainer.client
@@ -515,6 +517,25 @@ const FeedsContainer = createContainer(() => {
                 },
               },
             },
+            ...(tagName
+              ? [
+                  {
+                    key: "r2",
+                    type: "TAGGED_WITH",
+                    from: {
+                      key: "note",
+                    },
+                    to: {
+                      key: "tag",
+                      labels: ["Tag"],
+                      props: {
+                        sanitizedName: sanitizeTag(tagName),
+                        _owner: userProfile._owner || "",
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
           orderBy: {
             "note._createdAt": MyobuDBOrder.DESC,
@@ -538,6 +559,42 @@ const FeedsContainer = createContainer(() => {
             };
           });
           setUserNotes(notes as any);
+        });
+    }
+  }, [appContainer.client, userProfile, tagName]);
+
+  // Set User Tag
+  useEffect(() => {
+    if (appContainer.tab === Tab.User) {
+      const tag = appContainer.searchParams?.get("tag");
+      setTagName(tag || undefined);
+    }
+  }, [appContainer.tab, appContainer.searchParams]);
+
+  // Fetch User Tags
+  useEffect(() => {
+    if (appContainer.client && userProfile) {
+      appContainer.client
+        .db({
+          match: [
+            {
+              key: "r",
+              type: "TAGGED_WITH",
+              from: { key: "note", labels: ["Note"] },
+              to: { key: "tag", labels: ["Tag"] },
+            },
+          ],
+          return: [
+            { key: "tag", distinct: true },
+            { key: "tag", count: true, as: "noteCount" },
+          ],
+        })
+        .then((result) => {
+          const tags = result.map((x) => {
+            return { ...x.tag.props, noteCount: x.noteCount };
+          });
+          console.log("userTags: ", tags);
+          setUserTags(tags as any);
         });
     }
   }, [appContainer.client, userProfile]);
@@ -684,6 +741,7 @@ const FeedsContainer = createContainer(() => {
     tagName,
     userNotes,
     userProfile,
+    userTags,
   };
 });
 

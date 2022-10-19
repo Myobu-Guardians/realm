@@ -66,6 +66,7 @@ export interface Comment extends NodeBase {
 export interface Tag extends NodeBase {
   name: string;
   sanitizedName: string;
+  noteCount?: number;
 }
 
 export enum EditorMode {
