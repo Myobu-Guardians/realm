@@ -93,19 +93,36 @@ export function NoteCards() {
           <span>:NOTE</span>
         )}
       </div>
-      <div className="columns-1 sm:columns-[24rem]">
-        {feedsContainer.notes.length === 0 ? (
-          <div className="text-primary-content text-left">No notes found</div>
-        ) : (
-          feedsContainer.notes.map((note) => {
-            return (
-              <div key={note._id} className={"mb-2 sm:m-2"}>
-                <NoteCard note={note}></NoteCard>
-              </div>
-            );
-          })
-        )}
-      </div>
+      {feedsContainer.notes ? (
+        <>
+          <div className="columns-1 sm:columns-[24rem]">
+            {feedsContainer.notes.map((note) => {
+              return (
+                <div key={note._id} className={"mb-2 sm:m-2"}>
+                  <NoteCard note={note}></NoteCard>
+                </div>
+              );
+            })}
+          </div>
+          {feedsContainer.hasMoreNotes ? (
+            <div className="ml-2 my-10 text-center">
+              <button
+                className="btn btn-accent"
+                disabled={feedsContainer.isLoadingNotes}
+                onClick={feedsContainer.loadMoreNotes}
+              >
+                {feedsContainer.isLoadingNotes ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          ) : (
+            <div className="ml-2 my-10 text-center">
+              <span className="text-primary-content">No more profiles</span>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-primary-content text-left">Loading :Note</div>
+      )}
     </div>
   );
 }

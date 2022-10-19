@@ -23,9 +23,10 @@ const FeedsContainer = createContainer(() => {
     useState<boolean>(false);
 
   // :Note
-  const [notes, setNotes] = useState<RealmNote[]>([]);
+  const [notes, setNotes] = useState<RealmNote[] | undefined>(undefined);
   const [hasMoreNotes, setHasMoreNotes] = useState<boolean>(true);
   const [notesPage, setNotesPage] = useState<number>(0);
+  const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
   const [tagName, setTagName] = useState<string | undefined>(undefined);
 
   // NotePanel
@@ -42,6 +43,8 @@ const FeedsContainer = createContainer(() => {
     undefined
   );
   const [userTags, setUserTags] = useState<Tag[]>([]);
+  const [userNotesPage, setUserNotesPage] = useState<number>(0);
+  const [isLoadingUserNotes, setIsLoadingUserNotes] = useState<boolean>(false);
 
   const appContainer = AppContainer.useContainer();
 
@@ -98,7 +101,7 @@ const FeedsContainer = createContainer(() => {
               avatar: result[0].authorAvatar || "",
             },
           } as any,
-          ...notes,
+          ...(notes || []),
         ]);
       } else {
         throw new Error("Client is not ready");
@@ -124,7 +127,13 @@ const FeedsContainer = createContainer(() => {
           detachDelete: ["note"],
           return: ["note"],
         });
-        setNotes((notes) => notes.filter((n) => n._id !== noteId));
+        setNotes((notes) => {
+          if (notes) {
+            return notes.filter((n) => n._id !== noteId);
+          } else {
+            return [];
+          }
+        });
       }
     },
     [appContainer.client, appContainer.signerAddress]
@@ -152,7 +161,7 @@ const FeedsContainer = createContainer(() => {
           return: ["note"],
         });
         setNotes((notes) =>
-          notes.map((n) => {
+          (notes || []).map((n) => {
             if (n._id === args.noteId) {
               return {
                 ...n,
@@ -366,6 +375,14 @@ const FeedsContainer = createContainer(() => {
     setMNSProfilesPage((page) => page + 1);
   }, []);
 
+  const loadMoreNotes = useCallback(async () => {
+    setNotesPage((page) => page + 1);
+  }, []);
+
+  const loadMoreUserNotes = useCallback(async () => {
+    setUserNotesPage((page) => page + 1);
+  }, []);
+
   // Fetch MNS Profiles
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "mns") {
@@ -416,9 +433,15 @@ const FeedsContainer = createContainer(() => {
   // Fetch Notes
   useEffect(() => {
     if (appContainer.client && appContainer.tab === "notes") {
-      const tag = appContainer.searchParams?.get("tag");
-      setTagName(tag || undefined);
+      const tag = appContainer.searchParams?.get("tag") || undefined;
+      if (tag !== tagName) {
+        setNotesPage(0);
+        setNotes(undefined);
+        setTagName(tag || undefined);
+        return;
+      }
 
+      setIsLoadingNotes(true);
       appContainer.client
         .db({
           match: [
@@ -468,6 +491,8 @@ const FeedsContainer = createContainer(() => {
           orderBy: {
             "note._createdAt": MyobuDBOrder.DESC,
           },
+          skip: notesPage * itemsPerPage,
+          limit: itemsPerPage,
           return: [
             "note",
             { key: "author.displayName", as: "authorDisplayName" },
@@ -487,10 +512,29 @@ const FeedsContainer = createContainer(() => {
             };
           });
           console.log("fetched notes: ", notes);
-          setNotes(notes as any);
+          setHasMoreNotes(notes.length === itemsPerPage);
+          setNotes((oldNotes) => {
+            return (
+              ([...(oldNotes || []), ...notes] as RealmNote[])
+                // Remove duplicates
+                .filter((p, index, self) => {
+                  return index === self.findIndex((t) => t._id === p._id);
+                })
+            );
+          });
+          setIsLoadingNotes(false);
+        })
+        .catch(() => {
+          setIsLoadingNotes(false);
         });
     }
-  }, [appContainer.client, appContainer.tab, appContainer.searchParams]);
+  }, [
+    appContainer.client,
+    appContainer.tab,
+    appContainer.searchParams,
+    notesPage,
+    tagName,
+  ]);
 
   // Fetch User Profile
   useEffect(() => {
@@ -605,7 +649,7 @@ const FeedsContainer = createContainer(() => {
   // Set User Tag
   useEffect(() => {
     if (appContainer.tab === Tab.User) {
-      const tag = appContainer.searchParams?.get("tag");
+      const tag = appContainer.searchParams?.get("tag") || undefined;
       setTagName(tag || undefined);
     }
   }, [appContainer.tab, appContainer.searchParams]);
@@ -645,7 +689,9 @@ const FeedsContainer = createContainer(() => {
       appContainer.params.noteId &&
       appContainer.client
     ) {
-      const findNote = notes.find((x) => x._id === appContainer.params.noteId);
+      const findNote = (notes || []).find(
+        (x) => x._id === appContainer.params.noteId
+      );
       if (findNote) {
         setNote(findNote);
       } else {
@@ -773,17 +819,21 @@ const FeedsContainer = createContainer(() => {
     deleteTagFromNote,
     getTagsOfNote,
     loadMoreMNSProfiles,
+    loadMoreNotes,
+    loadMoreUserNotes,
     mnsProfiles,
     hasMoreMNSProfiles,
     isLoadingMNSProfiles,
     notes,
     hasMoreNotes,
+    isLoadingNotes,
     note,
     comments,
     tags,
     tagName,
     userNotes,
     hasMoreUserNotes,
+    isLoadingUserNotes,
     userProfile,
     userTags,
   };

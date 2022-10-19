@@ -23,13 +23,11 @@ export function ProfileCards() {
             })}
           </div>
           {feedsContainer.hasMoreMNSProfiles ? (
-            <div
-              className="ml-2 my-10 text-center"
-              onClick={feedsContainer.loadMoreMNSProfiles}
-            >
+            <div className="ml-2 my-10 text-center">
               <button
                 className="btn btn-accent"
                 disabled={feedsContainer.isLoadingMNSProfiles}
+                onClick={feedsContainer.loadMoreMNSProfiles}
               >
                 {feedsContainer.isLoadingMNSProfiles
                   ? "Loading..."
