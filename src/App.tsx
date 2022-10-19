@@ -18,6 +18,7 @@ import { generateSummaryFromMarkdown } from "./lib/note";
 import toastr from "toastr";
 import NavBar from "./components/Navbar";
 import TagsModal from "./components/TagsModal";
+import { UserPanel } from "./components/UserPanel";
 
 interface AppProps {
   tab: Tab;
@@ -173,6 +174,7 @@ function App(props: AppProps) {
               }}
             ></NotePanel>
           )}
+          {props.tab === Tab.User && <UserPanel></UserPanel>}
         </div>
         <div className="drawer-side">
           <label htmlFor="my-drawer" className="drawer-overlay"></label>
@@ -240,17 +242,6 @@ function App(props: AppProps) {
                 Myobu Realm
               </div>
               <div>
-                <Link to={"/mns"}>
-                  <div
-                    className="badge badge-lg cursor-pointer mr-2"
-                    style={{
-                      backgroundColor:
-                        randomColorGenerator.generateColor(":MNS"),
-                    }}
-                  >
-                    :MNS
-                  </div>
-                </Link>
                 <Link to={`/notes`}>
                   <div
                     className="badge badge-lg cursor-pointer mr-2"
@@ -263,6 +254,17 @@ function App(props: AppProps) {
                     }}
                   >
                     :Note
+                  </div>
+                </Link>
+                <Link to={"/mns"}>
+                  <div
+                    className="badge badge-lg cursor-pointer mr-2"
+                    style={{
+                      backgroundColor:
+                        randomColorGenerator.generateColor(":MNS"),
+                    }}
+                  >
+                    :MNS
                   </div>
                 </Link>
                 <div

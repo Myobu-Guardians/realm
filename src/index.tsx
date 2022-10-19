@@ -21,6 +21,7 @@ root.render(
           { path: "mns", element: <App tab={Tab.MNS} /> },
           { path: "notes", element: <App tab={Tab.Notes} /> },
           { path: "notes/:noteId", element: <App tab={Tab.Note} /> },
+          { path: ":username", element: <App tab={Tab.User}></App> },
           { path: "/", element: <App tab={Tab.Notes} /> },
         ])}
       ></RouterProvider>

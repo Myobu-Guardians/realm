@@ -6,6 +6,7 @@ export enum Tab {
   Notes = "notes",
   MNS = "mns",
   Note = "note",
+  User = "user",
   Unknown = "unknown",
 }
 
@@ -64,7 +65,7 @@ export interface Comment extends NodeBase {
 
 export interface Tag extends NodeBase {
   name: string;
-  lowerCaseName: string;
+  sanitizedName: string;
 }
 
 export enum EditorMode {

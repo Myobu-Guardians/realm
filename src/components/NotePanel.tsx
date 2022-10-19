@@ -102,31 +102,36 @@ export default function NotePanel(props: Props) {
                 navigation("/");
               }
             }}
+            title={"Back"}
           >
             <Icon path={mdiChevronLeft} size={1}></Icon>
           </button>
           {/* author */}
-          <div className="flex flex-row items-center">
-            <div className="avatar mr-2">
-              <div className="w-[40px] rounded-full ring ring-white">
-                <img
-                  src={
-                    feedsContainer.note.author?.avatar ||
-                    `https://avatars.dicebear.com/api/big-ears-neutral/${
-                      feedsContainer.note.author?.name || ""
-                    }.svg`
-                  }
-                  alt={feedsContainer.note.author?.name + ".m"}
-                ></img>
+          <Link to={`/${feedsContainer.note.author?.name || ""}.m`}>
+            <div className="flex flex-row items-center">
+              <div className="avatar mr-2">
+                <div className="w-[40px] rounded-full ring ring-white hover:bg-slate-200">
+                  <img
+                    src={
+                      feedsContainer.note.author?.avatar ||
+                      `https://avatars.dicebear.com/api/big-ears-neutral/${
+                        feedsContainer.note.author?.name || ""
+                      }.svg`
+                    }
+                    alt={feedsContainer.note.author?.name + ".m"}
+                  ></img>
+                </div>
+              </div>
+              <div className="flex flex-col text-sm">
+                <div className="font-bold hover:underline">
+                  {feedsContainer.note.author?.displayName}
+                </div>
+                <span className="hover:underline">
+                  @{feedsContainer.note.author?.name}.m
+                </span>
               </div>
             </div>
-            <div className="flex flex-col text-sm">
-              <div className="font-bold">
-                {feedsContainer.note.author?.displayName}
-              </div>
-              <span>@{feedsContainer.note.author?.name}.m</span>
-            </div>
-          </div>
+          </Link>
         </div>
         <div className="flex-none flex flex-col sm:flex-row items-center">
           {/* date */}

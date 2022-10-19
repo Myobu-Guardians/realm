@@ -1,7 +1,7 @@
 import { MyobuDBOrder } from "myobu-protocol-client/out/src/types";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import { Summary } from "../lib/note";
+import { sanitizeTag, Summary } from "../lib/note";
 import { Comment, MNSProfile, RealmNote, Tab, Tag } from "../lib/types";
 import AppContainer from "./app";
 
@@ -17,6 +17,12 @@ const FeedsContainer = createContainer(() => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [tagName, setTagName] = useState<string | undefined>(undefined);
+  const [userNotes, setUserNotes] = useState<RealmNote[] | undefined>(
+    undefined
+  );
+  const [userProfile, setUserProfile] = useState<MNSProfile | undefined>(
+    undefined
+  );
 
   const appContainer = AppContainer.useContainer();
 
@@ -241,7 +247,7 @@ const FeedsContainer = createContainer(() => {
               props: {
                 _owner: appContainer.signerAddress,
                 name: tagName,
-                lowerCaseName: tagName.toLowerCase(),
+                sanitizedName: sanitizeTag(tagName),
               },
             },
             {
@@ -288,7 +294,7 @@ const FeedsContainer = createContainer(() => {
                 labels: ["Tag"],
                 props: {
                   _owner: appContainer.signerAddress,
-                  lowerCaseName: tagName.toLowerCase(),
+                  name: tagName,
                 },
               },
             },
@@ -401,7 +407,7 @@ const FeedsContainer = createContainer(() => {
                       key: "tag",
                       labels: ["Tag"],
                       props: {
-                        lowerCaseName: tag.toLowerCase(),
+                        sanitizedName: sanitizeTag(tag),
                       },
                     },
                   },
@@ -445,6 +451,92 @@ const FeedsContainer = createContainer(() => {
         });
     }
   }, [appContainer.client, appContainer.tab, appContainer.searchParams]);
+
+  // Fetch User Profile
+  useEffect(() => {
+    if (
+      appContainer.tab === Tab.User &&
+      appContainer.params.username &&
+      appContainer.client
+    ) {
+      setUserProfile(undefined);
+      setUserNotes(undefined);
+      const username = appContainer.params.username.replace(/\.m$/, "");
+      // Fetch User Profile
+      appContainer.client
+        .db({
+          match: [
+            {
+              key: "profile",
+              labels: ["MNS"],
+              props: { name: username },
+            },
+          ],
+          return: ["profile"],
+        })
+        .then((result) => {
+          console.log(result, username);
+          if (result.length && result[0].profile) {
+            setUserProfile(result[0].profile.props as any);
+          }
+        })
+        .catch(() => {
+          setUserProfile(undefined);
+        });
+    }
+  }, [appContainer.client, appContainer.tab, appContainer.params]);
+
+  // Fetch User Notes
+  useEffect(() => {
+    if (appContainer.client && userProfile) {
+      appContainer.client
+        .db({
+          match: [
+            {
+              key: "r",
+              type: "POSTED",
+              from: {
+                key: "author",
+                labels: ["MNS"],
+                props: {
+                  name: userProfile.name,
+                  _owner: userProfile._owner || "",
+                },
+              },
+              to: {
+                key: "note",
+                labels: ["Note"],
+                props: {
+                  _owner: userProfile._owner || "",
+                },
+              },
+            },
+          ],
+          orderBy: {
+            "note._createdAt": MyobuDBOrder.DESC,
+          },
+          return: [
+            "note",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
+        })
+        .then((result) => {
+          const notes = result.map((x) => {
+            return {
+              ...x.note.props,
+              author: {
+                name: x.authorName,
+                displayName: x.authorDisplayName,
+                avatar: x.authorAvatar || "",
+              },
+            };
+          });
+          setUserNotes(notes as any);
+        });
+    }
+  }, [appContainer.client, userProfile]);
 
   // Fetch Note
   useEffect(() => {
@@ -586,6 +678,8 @@ const FeedsContainer = createContainer(() => {
     comments,
     tags,
     tagName,
+    userNotes,
+    userProfile,
   };
 });
 

@@ -50,3 +50,17 @@ export function generateSummaryFromMarkdown(markdown: string): Summary {
     images,
   };
 }
+
+/**
+ * To lowercase, remove punctuations, and spaces. Support unicode.
+ * @param tagName
+ */
+export function sanitizeTag(tagName: string) {
+  return tagName
+    .toLowerCase()
+    .replace(
+      /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~，。【】『』（）“；：‘]/g,
+      ""
+    )
+    .replace(/\s/g, "");
+}

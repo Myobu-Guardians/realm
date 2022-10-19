@@ -16,6 +16,7 @@ import {
 } from "@mdi/js";
 import { siDiscord, siTelegram, siTiktok } from "simple-icons/icons";
 import { randomColorGenerator } from "../lib/utils";
+import { Link } from "react-router-dom";
 
 const defaultWallpaper = "https://wallpaperaccess.com/full/1727918.jpg";
 
@@ -55,7 +56,7 @@ export function MNSProfileCard({
   }, [profile.avatar, profile.name]);
 
   return (
-    <div className="card w-96 max-w-full bg-neutral text-gray-300 shadow-xl mx-auto text-left">
+    <div className="card w-96 max-w-full bg-neutral text-gray-300 shadow-xl text-left">
       <div
         className="h-48 bg-cover"
         style={{
@@ -63,15 +64,19 @@ export function MNSProfileCard({
         }}
       ></div>
       <div className="card-body relative">
-        <div className="avatar absolute -top-8">
-          <div className="w-[80px] rounded-full ring ring-white">
-            <img src={avatarUrl} alt={`${profile.name}.m`} />
+        <Link to={`/${profile.name}.m`}>
+          <div className="avatar absolute -top-8">
+            <div className="w-[80px] rounded-full ring ring-white hover:ring-slate-200">
+              <img src={avatarUrl} alt={`${profile.name}.m`} />
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col absolute left-[128px] -top-[-4px]">
-          <h3 className="card-title">{profile.displayName}</h3>
-          <span className="-mt-1">@{profile.name}.m</span>
-        </div>
+          <div className="flex flex-col absolute left-[128px] -top-[-4px]">
+            <h3 className="card-title hover:underline">
+              {profile.displayName}
+            </h3>
+            <span className="-mt-1 hover:underline">@{profile.name}.m</span>
+          </div>
+        </Link>
         {hasSocialMedias && (
           <div className="mt-8 flex flex-row items-center flex-wrap">
             {profile.url && (

@@ -2,6 +2,7 @@ import { mdiMenu, mdiPencil } from "@mdi/js";
 import AppContainer from "../containers/app";
 import Icon from "@mdi/react";
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 
 interface Props {
   showPublishNoteEditor: () => void;
@@ -26,12 +27,12 @@ export default function NavBar(props: Props) {
       <div className="navbar sticky top-0 z-20 bg-neutral text-neutral-content">
         <div className="flex-1">
           {" "}
-          <a
+          <Link
             className="btn btn-ghost normal-case text-xl hidden sm:flex"
-            href="/"
+            to="/"
           >
             REALM
-          </a>
+          </Link>
         </div>
         <div className="flex-none">
           {appContainer.signerProfile && (
