@@ -36,10 +36,12 @@
   },
   "scripts": {
     "git-info": "echo export default \"{\\\"logMessage\\\": \\\"$(git log -1 --oneline)\\\",\\\"hash\\\":\\\"$(git rev-parse HEAD)\\\"}\"  > src/_git_commit.js",
-    "start": "yarn git-info; npm-run-all --parallel start:*",
+    "start": "yarn git-info && npm-run-all --parallel start:*",
     "start:copy-css-files": "gulp copy-css-files",
     "start:react-scripts": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "yarn git-info && yarn build:copy-css-files && yarn build:react-scripts",
+    "build:react-scripts": "react-app-rewired build",
+    "build:copy-css-files": "gulp copy-css-files",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
