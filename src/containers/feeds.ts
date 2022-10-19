@@ -459,32 +459,36 @@ const FeedsContainer = createContainer(() => {
       appContainer.params.username &&
       appContainer.client
     ) {
-      setUserProfile(undefined);
-      setUserNotes(undefined);
       const username = appContainer.params.username.replace(/\.m$/, "");
-      // Fetch User Profile
-      appContainer.client
-        .db({
-          match: [
-            {
-              key: "profile",
-              labels: ["MNS"],
-              props: { name: username },
-            },
-          ],
-          return: ["profile"],
-        })
-        .then((result) => {
-          console.log(result, username);
-          if (result.length && result[0].profile) {
-            setUserProfile(result[0].profile.props as any);
-          }
-        })
-        .catch(() => {
-          setUserProfile(undefined);
-        });
+
+      if (!userProfile || (userProfile && userProfile.name !== username)) {
+        setUserProfile(undefined);
+        setUserNotes(undefined);
+
+        // Fetch User Profile
+        appContainer.client
+          .db({
+            match: [
+              {
+                key: "profile",
+                labels: ["MNS"],
+                props: { name: username },
+              },
+            ],
+            return: ["profile"],
+          })
+          .then((result) => {
+            console.log(result, username);
+            if (result.length && result[0].profile) {
+              setUserProfile(result[0].profile.props as any);
+            }
+          })
+          .catch(() => {
+            setUserProfile(undefined);
+          });
+      }
     }
-  }, [appContainer.client, appContainer.tab, appContainer.params]);
+  }, [appContainer.client, appContainer.tab, appContainer.params, userProfile]);
 
   // Fetch User Notes
   useEffect(() => {

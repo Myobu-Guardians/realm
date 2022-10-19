@@ -30,7 +30,7 @@ export default function NotePanel(props: Props) {
   const previewElement = useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = useState<string>("");
   const location = useLocation();
-  const navigation = useNavigate();
+  const navigate = useNavigate();
 
   const deleteNote = useCallback(() => {
     if (feedsContainer.note) {
@@ -96,11 +96,7 @@ export default function NotePanel(props: Props) {
           <button
             className="btn btn-circle"
             onClick={() => {
-              if (location.state?.from) {
-                navigation(location.state.from);
-              } else {
-                navigation("/");
-              }
+              navigate(-1);
             }}
             title={"Back"}
           >
@@ -194,12 +190,7 @@ export default function NotePanel(props: Props) {
             .map((tag) => {
               return (
                 <Link to={`/notes?tag=${tag.name}`} key={`tag-` + tag.name}>
-                  <span
-                    className="badge badge-ghost mr-2"
-                    onClick={() => {
-                      // navigation(`/tags/${tag}`);
-                    }}
-                  >
+                  <span className="badge badge-ghost mr-2">
                     <Icon path={mdiTag} size={0.5} className={"mr-1"}></Icon>
                     {tag.name}
                   </span>
