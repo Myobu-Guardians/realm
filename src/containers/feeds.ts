@@ -690,8 +690,20 @@ const FeedsContainer = createContainer(() => {
             {
               key: "r",
               type: "TAGGED_WITH",
-              from: { key: "note", labels: ["Note"] },
-              to: { key: "tag", labels: ["Tag"] },
+              from: {
+                key: "note",
+                labels: ["Note"],
+                props: {
+                  _owner: userProfile._owner || "",
+                },
+              },
+              to: {
+                key: "tag",
+                labels: ["Tag"],
+                props: {
+                  _owner: userProfile._owner || "",
+                },
+              },
             },
           ],
           return: [

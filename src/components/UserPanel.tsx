@@ -1,4 +1,4 @@
-import { mdiTag } from "@mdi/js";
+import { mdiChevronLeft, mdiTag } from "@mdi/js";
 import Icon from "@mdi/react";
 import { Link, useNavigate } from "react-router-dom";
 import FeedsContainer from "../containers/feeds";
@@ -11,8 +11,19 @@ export function UserPanel() {
 
   return (
     <div className="relative p-1 sm:p-4 text-left">
-      <div className="text-3xl ml-2 mb-4 text-primary-content select-none">
-        <span>:MNS</span>
+      <div className=" ml-2 mb-4 flex flex-row items-center">
+        <button
+          className="btn btn-circle mr-2"
+          onClick={() => {
+            navigate(-1);
+          }}
+          title={"Back"}
+        >
+          <Icon path={mdiChevronLeft} size={1}></Icon>
+        </button>
+        <div className="text-3xl text-primary-content select-none">
+          <span>:MNS</span>
+        </div>
       </div>
       {/* User profile card */}
       {feedsContainer.userProfile ? (
