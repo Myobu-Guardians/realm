@@ -147,7 +147,7 @@ function App(props: AppProps) {
         style={{ height: `calc(100vh - 64px)` }}
       >
         <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-        <div className="drawer-content px-0 sm:px-2">
+        <div className="drawer-content px-1 sm:px-2">
           {/** right panel */}
           {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
           {props.tab === Tab.Notes && <NoteCards></NoteCards>}
@@ -179,7 +179,7 @@ function App(props: AppProps) {
         <div className="drawer-side">
           <label htmlFor="my-drawer" className="drawer-overlay"></label>
           {/* left panel */}
-          <div className="px-0 sm:px-4 pt-2 sm:pt-14 bg-[#212630]">
+          <div className="px-1 sm:px-4 pt-2 sm:pt-14 bg-[#212630]">
             {appContainer.signerProfile ? (
               <div>
                 <MNSProfileCard

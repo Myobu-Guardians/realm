@@ -56,7 +56,7 @@ export function MNSProfileCard({
   }, [profile.avatar, profile.name]);
 
   return (
-    <div className="card w-96 max-w-full bg-neutral text-gray-300 shadow-xl text-left">
+    <div className="card w-96 max-w-full bg-neutral text-gray-300 shadow-xl text-left mx-auto sm:mx-0">
       <div
         className="h-48 bg-cover"
         style={{
