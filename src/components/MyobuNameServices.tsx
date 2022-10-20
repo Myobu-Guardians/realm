@@ -16,7 +16,7 @@ import {
 } from "@mdi/js";
 import { siDiscord, siTelegram, siTiktok } from "simple-icons/icons";
 import { randomColorGenerator } from "../lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const defaultWallpaper = "https://wallpaperaccess.com/full/1727918.jpg";
 
@@ -27,6 +27,7 @@ export function MNSProfileCard({
   profile: MNSProfile;
   labels: string[];
 }) {
+  const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const hasSocialMedias = Object.keys(profile).some((key) =>
     [
@@ -56,7 +57,7 @@ export function MNSProfileCard({
   }, [profile.avatar, profile.name]);
 
   return (
-    <div className="card w-96 max-w-full bg-neutral text-gray-300 shadow-xl text-left mx-auto sm:mx-0">
+    <div className="card w-auto sm:w-96 max-w-full bg-neutral text-gray-300 shadow-xl text-left mx-auto sm:mx-0">
       <div
         className="h-48 bg-cover"
         style={{
@@ -64,7 +65,10 @@ export function MNSProfileCard({
         }}
       ></div>
       <div className="card-body relative">
-        <Link to={`/${profile.name}.m`}>
+        <label
+          htmlFor="my-drawer"
+          onClick={() => navigate(`/${profile.name}.m`)}
+        >
           <div className="avatar absolute -top-8">
             <div className="w-[80px] rounded-full ring ring-white hover:ring-slate-200">
               <img src={avatarUrl} alt={`${profile.name}.m`} />
@@ -76,7 +80,7 @@ export function MNSProfileCard({
             </h3>
             <span className="-mt-1 hover:underline">@{profile.name}.m</span>
           </div>
-        </Link>
+        </label>
         {hasSocialMedias && (
           <div className="mt-8 flex flex-row items-center flex-wrap">
             {profile.url && (

@@ -9,7 +9,13 @@ import {
   generateForegroundColorBasedOnBackgroundColor,
   randomColorGenerator,
 } from "./lib/utils";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { RealmNote, Tab } from "./lib/types";
 import { ProfileCards } from "./components/ProfileCards";
 import { NoteCards } from "./components/NoteCards";
@@ -28,6 +34,7 @@ function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
   const params = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showPublishNoteEditor, setShowPublishNoteEditor] = useState(false);
   const [showUpdateNoteEditor, setShowUpdateNoteEditor] = useState(false);
@@ -147,7 +154,7 @@ function App(props: AppProps) {
         style={{ height: `calc(100vh - 64px)` }}
       >
         <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-        <div className="drawer-content px-1 sm:px-2">
+        <div className="drawer-content px-1 sm:px-2 box-border">
           {/** right panel */}
           {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
           {props.tab === Tab.Notes && <NoteCards></NoteCards>}
@@ -179,7 +186,7 @@ function App(props: AppProps) {
         <div className="drawer-side">
           <label htmlFor="my-drawer" className="drawer-overlay"></label>
           {/* left panel */}
-          <div className="px-1 sm:px-4 pt-2 sm:pt-14 bg-[#212630]">
+          <div className="px-1 sm:px-4 pt-2 sm:pt-14 bg-[#212630] box-border">
             {appContainer.signerProfile ? (
               <div>
                 <MNSProfileCard
@@ -242,7 +249,7 @@ function App(props: AppProps) {
                 Myobu Realm
               </div>
               <div>
-                <Link to={`/notes`}>
+                <label htmlFor="my-drawer" onClick={() => navigate(`/notes`)}>
                   <div
                     className="badge badge-lg cursor-pointer mr-2"
                     style={{
@@ -255,8 +262,8 @@ function App(props: AppProps) {
                   >
                     :Note
                   </div>
-                </Link>
-                <Link to={"/mns"}>
+                </label>
+                <label htmlFor="my-drawer" onClick={() => navigate("/mns")}>
                   <div
                     className="badge badge-lg cursor-pointer mr-2"
                     style={{
@@ -266,7 +273,7 @@ function App(props: AppProps) {
                   >
                     :MNS
                   </div>
-                </Link>
+                </label>
                 <div
                   className="badge badge-lg cursor-not-allowed"
                   style={{
