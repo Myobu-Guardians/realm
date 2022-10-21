@@ -68,6 +68,7 @@ export function MNSProfileCard({
         <label
           htmlFor="my-drawer"
           onClick={() => navigate(`/${profile.name}.m`)}
+          className={"cursor-pointer"}
         >
           <div className="avatar absolute -top-8">
             <div className="w-[80px] rounded-full ring ring-white hover:ring-slate-200">
