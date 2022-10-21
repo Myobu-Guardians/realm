@@ -771,14 +771,7 @@ const FeedsContainer = createContainer(() => {
     }
   }, [appContainer.client, appContainer.tab, appContainer.params, notes]);
 
-  // Reset note comments on note change
-  useEffect(() => {
-    if (appContainer.tab === Tab.Note) {
-      setComments([]);
-      setTags([]);
-    }
-  }, [appContainer.tab]);
-
+  // Fetch Note Tags
   useEffect(() => {
     getTagsOfNote()
       .then((tags) => {
@@ -791,9 +784,7 @@ const FeedsContainer = createContainer(() => {
 
   // Fetch note comments
   useEffect(() => {
-    if (!note) {
-      setComments([]);
-    } else if (appContainer.client) {
+    if (appContainer.client && note) {
       appContainer.client
         .db({
           match: [
