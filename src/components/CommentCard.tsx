@@ -55,7 +55,7 @@ export default function CommentCard(props: Props) {
       {/* Markdown */}
       {/* Note markdown preview */}
       <div
-        className={"mt-2"}
+        className={"mt-2 preview"}
         style={{
           backgroundColor: "inherit",
         }}
