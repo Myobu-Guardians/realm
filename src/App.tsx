@@ -168,12 +168,16 @@ function App(props: AppProps) {
                 if (appContainer.signerProfile) {
                   setShowMakeCommentEditor(true);
                 } else {
-                  toastr.error(
-                    "Please register for MNS (Myobu Name Service) to make comment"
-                  );
-                  setTimeout(() => {
-                    window.open(`https://protocol.myobu.io`, "_self");
-                  }, 2000);
+                  if (!appContainer.signerAddress) {
+                    toastr.error("Please connect wallet first");
+                  } else {
+                    toastr.error(
+                      "Please register for MNS (Myobu Name Service) to make comment"
+                    );
+                    setTimeout(() => {
+                      window.open(`https://protocol.myobu.io`, "_self");
+                    }, 2000);
+                  }
                 }
               }}
               showEditTagsModal={() => {

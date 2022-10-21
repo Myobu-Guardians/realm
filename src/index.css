@@ -25,3 +25,8 @@ code {
 .editor .CodeMirror-gutters {
   display: none;
 }
+
+.preview .emoji {
+  display: inline-block;
+  margin-top: -8px;
+}
