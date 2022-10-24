@@ -197,13 +197,16 @@ export default function NotePanel(props: Props) {
                 </Link>
               );
             })}
-          <span
-            className="badge badge-info cursor-pointer"
-            onClick={props.showEditTagsModal}
-          >
-            <Icon path={mdiPlus} size={0.5}></Icon>
-            Manage tags
-          </span>
+          {appContainer.signerAddress &&
+            appContainer.signerAddress === feedsContainer.note._owner && (
+              <span
+                className="badge badge-info cursor-pointer"
+                onClick={props.showEditTagsModal}
+              >
+                <Icon path={mdiPlus} size={0.5}></Icon>
+                Manage tags
+              </span>
+            )}
         </div>
       </div>
       {/* Comments */}
