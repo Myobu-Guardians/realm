@@ -3,6 +3,7 @@ import AppContainer from "../containers/app";
 import Icon from "@mdi/react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import Logo from "../assets/images/logo.png";
 
 interface Props {
   showPublishNoteEditor: () => void;
@@ -31,6 +32,7 @@ export default function NavBar(props: Props) {
             className="btn btn-ghost normal-case text-xl hidden sm:flex"
             to="/"
           >
+            <img src={Logo} alt={"Realm"} className={"h-[40px] mr-2"}></img>
             REALM
           </Link>
         </div>
