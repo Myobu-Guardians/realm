@@ -1,11 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { createRef, useCallback, useEffect, useRef, useState } from "react";
 import { Editor as CodeMirrorEditor } from "codemirror";
 import { setTheme as EchoMDSetTheme } from "@0xgg/echomd/theme";
 import { EchoMDVersion } from "../editor";
 import Icon from "@mdi/react";
-import { mdiClose, mdiLanguageMarkdown, mdiPublish, mdiTag } from "@mdi/js";
+import {
+  mdiClose,
+  mdiFormatBold,
+  mdiFormatHeader1,
+  mdiFormatHeader2,
+  mdiFormatHeader3,
+  mdiFormatItalic,
+  mdiImage,
+  mdiLanguageMarkdown,
+  mdiPublish,
+} from "@mdi/js";
 import { EditorMode } from "../lib/types";
 import { renderPreview } from "@0xgg/echomd/preview";
+import toastr from "toastr";
+import AppContainer from "../containers/app";
 const EchoMD = require("@0xgg/echomd/core");
 
 const HMDFold = {
@@ -29,6 +41,7 @@ interface EditorProps {
 
 export default function Editor(props: EditorProps) {
   // const previewElement = useRef<HTMLDivElement>(null);
+  const appContainer = AppContainer.useContainer();
   const textAreaElement = useRef<HTMLTextAreaElement>(null);
   const previewElement = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<CodeMirrorEditor | undefined>(undefined);
@@ -40,6 +53,59 @@ export default function Editor(props: EditorProps) {
           localStorage.getItem("note/markdown") ||
           "# Your note title goes here"
   );
+  const uploadImageRef = createRef<HTMLInputElement>();
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+
+  const insertHeader = useCallback(
+    (headerLevel: number) => {
+      if (editor) {
+        setEditorMode(EditorMode.Code);
+        editor.replaceSelection(
+          `${"#".repeat(headerLevel)} ${editor.getSelection() || "Header"}`
+        );
+      }
+    },
+    [editor]
+  );
+
+  const insertBold = useCallback(() => {
+    if (editor) {
+      setEditorMode(EditorMode.Code);
+      editor.replaceSelection(`**${editor.getSelection() || "Bold text"}**`);
+    }
+  }, [editor]);
+
+  const insertItalic = useCallback(() => {
+    if (editor) {
+      setEditorMode(EditorMode.Code);
+      editor.replaceSelection(`*${editor.getSelection() || "Italic text"}*`);
+    }
+  }, [editor]);
+
+  const uploadImages = useCallback(async () => {
+    if (editor && uploadImageRef.current?.files && appContainer.client) {
+      const files = Array.from(uploadImageRef.current?.files || []);
+
+      setIsUploadingImages(true);
+      try {
+        const { urls } = await appContainer.client.uploadImages(files);
+        editor.replaceSelection(
+          urls
+            .map(
+              (url, index) => `![${files[index]?.name || "unknown"}](${url})`
+            )
+            .join("\n\n")
+        );
+      } catch (error) {
+        toastr.error(`Failed to upload images`);
+      }
+      setIsUploadingImages(false);
+
+      if (uploadImageRef.current) {
+        uploadImageRef.current.value = "";
+      }
+    }
+  }, [editor, uploadImageRef, appContainer.client]);
 
   // Set editor
   useEffect(() => {
@@ -127,14 +193,68 @@ export default function Editor(props: EditorProps) {
               className={"mr-2"}
               title={"Markdown supported"}
             ></Icon>
-            <a
-              href="https://www.markdownguide.org/basic-syntax/"
-              target={"_blank"}
-              rel={"noreferrer"}
-              className={"link hidden md:inline-block"}
+            <button
+              className="btn btn-ghost px-2 hidden md:inline-block"
+              onClick={() => insertHeader(1)}
+              title="Insert header 1"
             >
-              Markdown supported
-            </a>
+              <Icon path={mdiFormatHeader1} size={1}></Icon>
+            </button>
+            <button
+              className="btn btn-ghost px-2 hidden md:inline-block"
+              onClick={() => {
+                insertHeader(2);
+              }}
+              title="Insert header 2"
+            >
+              <Icon path={mdiFormatHeader2} size={1}></Icon>
+            </button>
+            <button
+              className="btn btn-ghost px-2 hidden md:inline-block"
+              onClick={() => {
+                insertHeader(3);
+              }}
+              title="Insert header 3"
+            >
+              <Icon path={mdiFormatHeader3} size={1}></Icon>
+            </button>
+            <button
+              className="btn btn-ghost px-2 hidden md:inline-block"
+              onClick={() => {
+                insertBold();
+              }}
+              title="Insert bold text"
+            >
+              <Icon path={mdiFormatBold} size={1}></Icon>
+            </button>
+            <button
+              className="btn btn-ghost px-2 hidden md:inline-block"
+              onClick={() => {
+                insertItalic();
+              }}
+              title="Insert italic text"
+            >
+              <Icon path={mdiFormatItalic} size={1}></Icon>
+            </button>
+            <button
+              className="btn btn-ghost px-2"
+              onClick={() => {
+                if (uploadImageRef && uploadImageRef.current) {
+                  uploadImageRef.current.click();
+                }
+              }}
+              title="Upload image"
+              disabled={isUploadingImages}
+            >
+              <Icon path={mdiImage} size={1}></Icon>
+            </button>
+            <input
+              className="hidden"
+              type={"file"}
+              ref={uploadImageRef}
+              onChange={uploadImages}
+              multiple
+            ></input>
           </div>
           <div className="flex-none">
             <div className="form-control mr-2">
