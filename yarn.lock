@@ -10512,10 +10512,10 @@ mute-stdout@^1.0.0:
   resolved "https://registry.yarnpkg.com/mute-stdout/-/mute-stdout-1.0.1.tgz#acb0300eb4de23a7ddeec014e3e96044b3472331"
   integrity sha512-kDcwXR4PS7caBpuRYYBUz9iVixUk3anO3f5OYFiIPwK/20vCzKCHyKoulbiDY1S53zD2bxUpxN/IJ+TnXjfvxg==
 
-myobu-protocol-client@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/myobu-protocol-client/-/myobu-protocol-client-0.0.5.tgz#71933f8dd1c3adc44861af2174a05adb5ac4e30d"
-  integrity sha512-cQQQULGat+2gd3mxhIPTI7cm5zhouyeioB2HkqiH+iaSQIdbpPMUHS6fgGWcLTgNJU30p/9sI78yaPAChyEPDw==
+myobu-protocol-client@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/myobu-protocol-client/-/myobu-protocol-client-0.0.6.tgz#ce87a4fbc79ddad75df401a96cc926c750c6ba8a"
+  integrity sha512-gMkAo6yD8rycIsELBN9EFwumgMM3Io5LgCABu8w5o/JSRhqItzSOy64pTZl20V0fOZMYCjX0ty6v/3+2S2XP1A==
   dependencies:
     ethers "^5.7.0"
     socket.io-client "^4.5.2"
