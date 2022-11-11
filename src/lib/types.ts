@@ -46,6 +46,7 @@ export interface MNSProfile extends NodeBase {
 
 export interface RealmNote extends NodeBase, Summary {
   ipfsHash: string;
+  markdown?: string;
   arweaveId?: string;
   author?: {
     name: string;

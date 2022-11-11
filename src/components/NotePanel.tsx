@@ -27,9 +27,11 @@ interface Props {
 export default function NotePanel(props: Props) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
+  const containerElement = useRef<HTMLDivElement>(null);
   const previewElement = useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = useState<string>("");
-  const location = useLocation();
+  const [tocEnabled, setTocEnabled] = useState<boolean>(false);
+
   const navigate = useNavigate();
 
   const deleteNote = useCallback(() => {
@@ -52,7 +54,9 @@ export default function NotePanel(props: Props) {
   }, [feedsContainer.note]);
 
   useEffect(() => {
-    if (feedsContainer.note?.ipfsHash) {
+    if (feedsContainer.note?.markdown) {
+      setMarkdown(feedsContainer.note.markdown);
+    } else if (feedsContainer.note?.ipfsHash) {
       appContainer
         .ipfsCat(feedsContainer.note.ipfsHash)
         .then((data) => {
@@ -64,6 +68,8 @@ export default function NotePanel(props: Props) {
             `Error loading note from IPFS [${feedsContainer.note?.ipfsHash}](https://ipfs.io/ipfs/${feedsContainer.note?.ipfsHash})`
           );
         });
+    } else {
+      setMarkdown("");
     }
   }, [feedsContainer.note, appContainer.ipfsCat]);
 
@@ -80,6 +86,12 @@ export default function NotePanel(props: Props) {
     });
   }, []);
 
+  useEffect(() => {
+    if (containerElement.current && feedsContainer.note) {
+      setTocEnabled(containerElement.current.offsetWidth > 768);
+    }
+  }, [containerElement, feedsContainer.note]);
+
   if (!feedsContainer.note) {
     // Loading notes
     return (
@@ -88,7 +100,7 @@ export default function NotePanel(props: Props) {
   }
 
   return (
-    <div className="relative p-1 sm:p-4">
+    <div className="relative p-1 sm:p-4" ref={containerElement}>
       {/* Top banner */}
       <div className="w-[800px] max-w-full mx-auto flex flex-row items-center mb-4 px-1 sm:px-0 py-2 bg-[#2A303C] sticky top-0">
         <div className="flex flex-row items-center flex-1">
@@ -174,6 +186,10 @@ export default function NotePanel(props: Props) {
           </div>
         </div>
       </div>
+      {/* Loading */}
+      {!feedsContainer.note && (
+        <div className="relative text-center text-2xl top-1/3">Loading...</div>
+      )}
       {/* Note markdown preview */}
       <div
         className={"preview w-[800px] max-w-full mx-auto mb-10"}

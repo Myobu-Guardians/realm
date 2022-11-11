@@ -65,7 +65,7 @@ function App(props: AppProps) {
           toastr.info("Uploading to IPFS...");
           const ipfsHash = await appContainer.ipfsAdd(markdown);
           console.log(await appContainer.ipfsCat(ipfsHash));
-          const note: RealmNote = { ...summary, ipfsHash };
+          const note: RealmNote = { ...summary, ipfsHash, markdown };
           await feedsContainer.publishNote(note);
           toastr.success("Note published!");
           localStorage.removeItem("note/markdown");
@@ -96,6 +96,7 @@ function App(props: AppProps) {
           await feedsContainer.updateNote({
             noteId: note._id || "",
             ipfsHash,
+            markdown,
             ...summary,
           });
           toastr.success("Note updated!");

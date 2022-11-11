@@ -10,6 +10,7 @@ const itemsPerPage = 20;
 interface UpdateNoteArgs extends Summary {
   noteId: string;
   ipfsHash: string;
+  markdown: string;
 }
 
 const FeedsContainer = createContainer(() => {
@@ -73,6 +74,7 @@ const FeedsContainer = createContainer(() => {
               props: {
                 summary: note.summary,
                 images: note.images,
+                markdown: note.markdown || "",
                 ipfsHash: note.ipfsHash,
                 arweaveId: note.arweaveId || "",
               },
@@ -162,6 +164,7 @@ const FeedsContainer = createContainer(() => {
             "note.ipfsHash": args.ipfsHash,
             "note.summary": args.summary,
             "note.images": args.images,
+            "note.markdown": args.markdown || "",
           },
           return: ["note"],
         });
@@ -173,6 +176,7 @@ const FeedsContainer = createContainer(() => {
                 ipfsHash: args.ipfsHash,
                 summary: args.summary,
                 images: args.images,
+                markdown: args.markdown || "",
                 _updatedAt: Date.now(),
               };
             }
@@ -499,7 +503,10 @@ const FeedsContainer = createContainer(() => {
           skip: notesPage * itemsPerPage,
           limit: itemsPerPage,
           return: [
-            "note",
+            { key: "note._id", as: "noteId" },
+            { key: "note.ipfsHash", as: "noteIpfsHash" },
+            { key: "note.summary", as: "noteSummary" },
+            { key: "note.images", as: "noteImages" },
             { key: "author.displayName", as: "authorDisplayName" },
             { key: "author.name", as: "authorName" },
             { key: "author.avatar", as: "authorAvatar" },
@@ -508,7 +515,10 @@ const FeedsContainer = createContainer(() => {
         .then((result) => {
           const notes = result.map((x) => {
             return {
-              ...x.note.props,
+              _id: x.noteId,
+              ipfsHash: x.noteIpfsHash,
+              summary: x.noteSummary,
+              images: x.noteImages || [],
               author: {
                 name: x.authorName,
                 displayName: x.authorDisplayName,
@@ -728,46 +738,42 @@ const FeedsContainer = createContainer(() => {
       appContainer.params.noteId &&
       appContainer.client
     ) {
-      const findNote = (notes || []).find(
-        (x) => x._id === appContainer.params.noteId
-      );
-      if (findNote) {
-        setNote(findNote);
-      } else {
-        appContainer.client
-          .db({
-            match: [
-              {
-                key: "note",
-                labels: ["Note"],
-                props: { _id: appContainer.params.noteId },
-              },
-              { key: "author", labels: ["MNS"] },
-            ],
-            where: {
-              "author._owner": {
-                $eq: "$note._owner",
-              },
+      setNote(undefined);
+      setComments([]);
+
+      appContainer.client
+        .db({
+          match: [
+            {
+              key: "note",
+              labels: ["Note"],
+              props: { _id: appContainer.params.noteId },
             },
-            return: [
-              "note",
-              { key: "author.displayName", as: "authorDisplayName" },
-              { key: "author.name", as: "authorName" },
-              { key: "author.avatar", as: "authorAvatar" },
-            ],
-          })
-          .then((result) => {
-            const note: RealmNote = {
-              ...result[0].note.props,
-              author: {
-                name: result[0].authorName,
-                displayName: result[0].authorDisplayName,
-                avatar: result[0].authorAvatar || "",
-              },
-            } as any;
-            setNote(note);
-          });
-      }
+            { key: "author", labels: ["MNS"] },
+          ],
+          where: {
+            "author._owner": {
+              $eq: "$note._owner",
+            },
+          },
+          return: [
+            "note",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
+        })
+        .then((result) => {
+          const note: RealmNote = {
+            ...result[0].note.props,
+            author: {
+              name: result[0].authorName,
+              displayName: result[0].authorDisplayName,
+              avatar: result[0].authorAvatar || "",
+            },
+          } as any;
+          setNote(note);
+        });
     }
   }, [appContainer.client, appContainer.tab, appContainer.params, notes]);
 
@@ -783,6 +789,7 @@ const FeedsContainer = createContainer(() => {
   }, [getTagsOfNote]);
 
   // Fetch note comments
+  // TODO: Pagination
   useEffect(() => {
     if (appContainer.client && note) {
       appContainer.client
