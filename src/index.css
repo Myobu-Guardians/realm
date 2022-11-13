@@ -30,3 +30,8 @@ code {
   display: inline-block;
   margin-top: -8px;
 }
+
+.toc-item img {
+  height: 16px;
+  display: inline-block;
+}

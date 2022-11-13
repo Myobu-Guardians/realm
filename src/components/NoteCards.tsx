@@ -90,7 +90,7 @@ export function NoteCards() {
             <span>{feedsContainer.notesTagName}</span>
           </div>
         ) : (
-          <span>:NOTE</span>
+          <span>:Note</span>
         )}
       </div>
       {feedsContainer.notes ? (
