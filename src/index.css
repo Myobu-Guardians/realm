@@ -30,3 +30,17 @@ code {
   display: inline-block;
   margin-top: -8px;
 }
+
+.preview li {
+  list-style-type: disc;
+}
+
+html .preview.preview .task-list-item-checkbox[checked]:before {
+  position: relative;
+  bottom: 4px;
+}
+
+.toc-item img {
+  height: 16px;
+  display: inline-block;
+}

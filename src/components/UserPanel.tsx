@@ -41,7 +41,7 @@ export function UserPanel() {
             <span>{feedsContainer.userNotesTagName}</span>
           </div>
         ) : (
-          <span>:NOTE</span>
+          <span>:Note</span>
         )}
       </div>
       {feedsContainer.userProfile && feedsContainer.userTags.length > 0 && (

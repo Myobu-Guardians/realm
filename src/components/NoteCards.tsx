@@ -30,7 +30,7 @@ export function NoteCard({ note }: NoteCardProps) {
                 <img
                   src={image}
                   alt="note"
-                  className="w-full h-full rounded-md"
+                  className="w-full h-full rounded-md object-cover"
                 />
               </div>
             ))}
@@ -90,7 +90,7 @@ export function NoteCards() {
             <span>{feedsContainer.notesTagName}</span>
           </div>
         ) : (
-          <span>:NOTE</span>
+          <span>:Note</span>
         )}
       </div>
       {feedsContainer.notes ? (
