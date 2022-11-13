@@ -504,6 +504,8 @@ const FeedsContainer = createContainer(() => {
           limit: itemsPerPage,
           return: [
             { key: "note._id", as: "noteId" },
+            { key: "note._createdAt", as: "noteCreatedAt" },
+            { key: "note._updatedAt", as: "noteUpdatedAt" },
             { key: "note.ipfsHash", as: "noteIpfsHash" },
             { key: "note.summary", as: "noteSummary" },
             { key: "note.images", as: "noteImages" },
@@ -516,6 +518,8 @@ const FeedsContainer = createContainer(() => {
           const notes = result.map((x) => {
             return {
               _id: x.noteId,
+              _createdAt: x.noteCreatedAt,
+              _updatedAt: x.noteUpdatedAt,
               ipfsHash: x.noteIpfsHash,
               summary: x.noteSummary,
               images: x.noteImages || [],
