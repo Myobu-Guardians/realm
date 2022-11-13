@@ -41,9 +41,13 @@ export function generateSummaryFromMarkdown(markdown: string): Summary {
             !x.match(/<!--\s*@.+?-->/) // Remove widget
         )
         .map((x) => x.replace(/#+\s(.+)\s*$/, "$1").trim()) // Replace headers to normal
+        .map((x) => x.replace(/\*\*(.+?)\*\*/g, "$1").trim()) // Remove bold
+        .map((x) => x.replace(/\*(.+?)\*/g, "$1").trim()) // Remove italic
         .slice(0, 10)
-        .join("\n")
-        .slice(0, 64); // Get first 10 lines and 64 characters
+        .join("\n");
+  if (summary.length > 64) {
+    summary = summary.slice(0, 64) + "..."; // Get first 10 lines and 64 characters
+  }
 
   return {
     summary,
