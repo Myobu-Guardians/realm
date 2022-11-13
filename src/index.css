@@ -37,7 +37,7 @@ code {
 
 html .preview.preview .task-list-item-checkbox[checked]:before {
   position: relative;
-  bottom: 5px;
+  bottom: 4px;
 }
 
 .toc-item img {
