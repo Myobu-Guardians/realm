@@ -15,7 +15,7 @@ export function generateSummaryFromMarkdown(markdown: string): Summary {
     title = titleMatch[0].replace(/^#/, "").trim();
   }
 
-  const coverImagesMatch = markdown.match(/^!\[.*?\]\(.+?\)/gim);
+  const coverImagesMatch = markdown.match(/(?:^|\[)!\[.*?\]\(.+?\)/gim);
   if (coverImagesMatch && coverImagesMatch.length) {
     coverImagesMatch.forEach((mdImage) => {
       const match = mdImage.match(/\(([^)"]+?)\)/);
