@@ -7,6 +7,8 @@ export enum Tab {
   MNS = "mns",
   Note = "note",
   User = "user",
+  Proposals = "proposals",
+  Proposal = "proposal",
   Unknown = "unknown",
 }
 

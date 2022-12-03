@@ -144,11 +144,7 @@ function App(props: AppProps) {
 
   return (
     <div className="App">
-      <NavBar
-        showPublishNoteEditor={() => {
-          setShowPublishNoteEditor(true);
-        }}
-      ></NavBar>
+      <NavBar></NavBar>
       {/** Main body */}
       <div
         className="drawer drawer-mobile text-left"
@@ -158,7 +154,13 @@ function App(props: AppProps) {
         <div className="drawer-content px-1 sm:px-2 box-border">
           {/** right panel */}
           {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
-          {props.tab === Tab.Notes && <NoteCards></NoteCards>}
+          {props.tab === Tab.Notes && (
+            <NoteCards
+              showPublishNoteEditor={() => {
+                setShowPublishNoteEditor(true);
+              }}
+            ></NoteCards>
+          )}
           {props.tab === Tab.Note && (
             <NotePanel
               showUpdateNoteEditor={(markdown) => {
@@ -266,6 +268,23 @@ function App(props: AppProps) {
                     }}
                   >
                     :Note
+                  </div>
+                </label>
+                <label
+                  htmlFor="my-drawer"
+                  onClick={() => navigate(`/proposals`)}
+                >
+                  <div
+                    className="badge badge-lg cursor-pointer mr-2"
+                    style={{
+                      backgroundColor:
+                        randomColorGenerator.generateColor(":proposal"),
+                      color: generateForegroundColorBasedOnBackgroundColor(
+                        randomColorGenerator.generateColor(":proposal")
+                      ),
+                    }}
+                  >
+                    :Proposal
                   </div>
                 </label>
                 <label htmlFor="my-drawer" onClick={() => navigate("/mns")}>
