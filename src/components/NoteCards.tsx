@@ -100,14 +100,25 @@ export function NoteCards(props: NoteCardsProps) {
         ) : (
           <span>:Note</span>
         )}
-        {appContainer.signerProfile && (
-          <button
-            className="btn btn-primary mr-2"
-            onClick={props.showPublishNoteEditor}
-          >
-            <Icon path={mdiPencil} size={1} className={"mr-1"}></Icon> New Note
-          </button>
-        )}
+        <button
+          className="btn btn-primary mr-2"
+          onClick={() => {
+            if (appContainer.signerProfile) {
+              props.showPublishNoteEditor();
+            } else if (!appContainer.signerAddress) {
+              toastr.error("Please connect your wallet first.");
+            } else {
+              toastr.error(
+                "Please register for MNS (Myobu Name Service) to make comment"
+              );
+              setTimeout(() => {
+                window.open(`https://protocol.myobu.io`, "_self");
+              }, 2000);
+            }
+          }}
+        >
+          <Icon path={mdiPencil} size={1} className={"mr-1"}></Icon> New Note
+        </button>
       </div>
       {feedsContainer.notes ? (
         <>

@@ -39,6 +39,13 @@ const AppContainer = createContainer(() => {
   const [searchParams, setSearchParams] = useState<URLSearchParams | undefined>(
     undefined
   );
+  const [signerVotingPower, setSignerVotingPower] = useState<
+    number | undefined
+  >(undefined);
+  const [signerBalance, setSignerBalance] = useState<number | undefined>(
+    undefined
+  );
+  const [myobuPrice, setMyobuPrice] = useState<number | undefined>(undefined);
 
   const ipfsAdd = useCallback(
     async (content: string): Promise<string> => {
@@ -187,11 +194,53 @@ const AppContainer = createContainer(() => {
     }
   }, [signerAddress, client]);
 
+  useEffect(() => {
+    if (client && signerProfile && signerAddress) {
+      client
+        .getVotingPower(signerProfile._owner || signerAddress)
+        .then((vp) => {
+          setSignerVotingPower(vp);
+        })
+        .catch(() => {
+          setSignerVotingPower(undefined);
+        });
+
+      client
+        .getBalance(signerAddress)
+        .then((balance) => {
+          setSignerBalance(balance);
+        })
+        .catch(() => {
+          setSignerBalance(undefined);
+        });
+    }
+  }, [client, signerAddress, signerProfile]);
+
+  // Fetch MYOBU price from CoinGecko
+  useEffect(() => {
+    fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=myobu&vs_currencies=usd`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((json) => {
+        setMyobuPrice(json.myobu.usd);
+        console.log(json);
+      });
+  }, []);
+
   return {
     client,
     signer,
     signerAddress,
     signerProfile,
+    signerVotingPower,
+    signerBalance,
     connectToMetaMask,
     ipfsAdd,
     ipfsCat,
@@ -202,6 +251,7 @@ const AppContainer = createContainer(() => {
     setParams,
     searchParams,
     setSearchParams,
+    myobuPrice,
   };
 });
 

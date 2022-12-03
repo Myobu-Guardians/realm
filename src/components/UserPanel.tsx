@@ -78,7 +78,7 @@ export function UserPanel() {
       )}
       {feedsContainer.userNotes ? (
         <>
-          <div className="columns-1 sm:columns-[24rem]">
+          <div className="flex flex-col sm:flex-row flex-wrap">
             {feedsContainer.userNotes.map((note) => {
               return (
                 <div key={note._id} className={"mb-2 sm:m-2"}>
