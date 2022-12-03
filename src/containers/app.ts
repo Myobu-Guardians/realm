@@ -176,23 +176,10 @@ const AppContainer = createContainer(() => {
 
   useEffect(() => {
     if (client && signerAddress) {
-      // Fetch mns
       client
-        .db({
-          match: [
-            {
-              key: "profile",
-              labels: ["MNS"],
-              props: { _owner: signerAddress },
-            },
-          ],
-          return: ["profile"],
-        })
-        .then((result) => {
-          console.log(result, signerAddress);
-          if (result.length && result[0].profile) {
-            setSignerProfile(result[0].profile.props as any);
-          }
+        .getMNS(signerAddress)
+        .then((mns) => {
+          setSignerProfile(mns);
         })
         .catch(() => {
           setSignerProfile(undefined);
