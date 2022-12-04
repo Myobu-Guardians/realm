@@ -143,7 +143,7 @@ export default function NotePanel(props: Props) {
   }, [markdown, tocEnabled, tocElement, previewElement, containerElement]);
 
   if (!feedsContainer.note) {
-    // Loading notes
+    // Loading note
     return (
       <div className="relative text-center text-2xl top-1/3">Loading...</div>
     );

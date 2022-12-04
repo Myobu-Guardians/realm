@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
 import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
-import MyobuProtocolClient from "myobu-protocol-client";
 import { MNSProfile, Tab, WalletConnectMethod } from "../lib/types";
 import { NFTStorage } from "nft.storage";
 import { Params, useSearchParams } from "react-router-dom";
+import { MyobuProtocolClient } from "myobu-protocol-client";
 
 interface ArweaveAddArgs {
   content: string;

@@ -24,6 +24,9 @@ import millify from "millify";
 import Icon from "@mdi/react";
 import { mdiGold, mdiVote } from "@mdi/js";
 import ProposalEditor from "./components/ProposalEditor";
+import { MyobuDBProposal } from "myobu-protocol-client";
+import ProposalsContainer from "./containers/proposals";
+import ProposalPanel from "./components/ProposalPanel";
 
 interface AppProps {
   tab: Tab;
@@ -32,6 +35,8 @@ interface AppProps {
 function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
+  const proposalsContainer = ProposalsContainer.useContainer();
+
   const params = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -137,6 +142,21 @@ function App(props: AppProps) {
     [feedsContainer.note, feedsContainer.makeComment]
   );
 
+  const publishProposal = useCallback(
+    async (proposal: MyobuDBProposal) => {
+      console.log("Publish proposal: ", proposal);
+      try {
+        await proposalsContainer.publishProposal(proposal);
+        setShowPublishProposalEditor(false);
+        toastr.success("Proposal published!");
+      } catch (error) {
+        console.error(error);
+        toastr.error("Error publishing proposal");
+      }
+    },
+    [proposalsContainer.publishProposal]
+  );
+
   useEffect(() => {
     appContainer.setParams(params);
     appContainer.setSearchParams(searchParams);
@@ -196,6 +216,7 @@ function App(props: AppProps) {
               }}
             ></ProposalCards>
           )}
+          {props.tab === Tab.Proposal && <ProposalPanel></ProposalPanel>}
           {props.tab === Tab.User && <UserPanel></UserPanel>}
         </div>
         <div className="drawer-side">
@@ -398,6 +419,7 @@ function App(props: AppProps) {
             setShowPublishProposalEditor(false);
           }}
           confirmButtonText={"Publish"}
+          onConfirm={publishProposal}
         ></ProposalEditor>
       )}
     </div>

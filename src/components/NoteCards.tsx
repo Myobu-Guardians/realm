@@ -5,6 +5,7 @@ import FeedsContainer from "../containers/feeds";
 import { RealmNote } from "../lib/types";
 import { formatDistanceToNowStrict } from "date-fns";
 import AppContainer from "../containers/app";
+import AuthorDiv from "./AuthorDiv";
 
 interface NoteCardProps {
   note: RealmNote;
@@ -42,38 +43,20 @@ export function NoteCard({ note }: NoteCardProps) {
             <div className="text-primary-content text-lg my-2">
               {note.summary}
             </div>
-            <div className="flex flex-row items-center justify-between">
-              <Link to={`/${note.author?.name || ""}.m`}>
-                <div className="flex flex-row items-center flex-1">
-                  <div className="avatar mr-2">
-                    <div className="w-[40px] rounded-full ring ring-white hover:ring-slate-200">
-                      <img
-                        src={
-                          note.author?.avatar ||
-                          `https://avatars.dicebear.com/api/big-ears-neutral/${
-                            note.author?.name || ""
-                          }.svg`
-                        }
-                        alt={note.author?.name + ".m"}
-                      ></img>
-                    </div>
-                  </div>
-                  <div className="flex flex-col text-sm">
-                    <div className="font-bold hover:underline">
-                      {note.author?.displayName}
-                    </div>
-                    <span className="hover:underline">
-                      @{note.author?.name}.m
+            {note.author && (
+              <AuthorDiv
+                author={note.author}
+                rightContent={
+                  <div className="flex">
+                    <span className="badge">
+                      {formatDistanceToNowStrict(
+                        new Date(note._updatedAt || 0)
+                      )}
                     </span>
                   </div>
-                </div>
-              </Link>
-              <div className="flex">
-                <span className="badge">
-                  {formatDistanceToNowStrict(new Date(note._updatedAt || 0))}
-                </span>
-              </div>
-            </div>
+                }
+              ></AuthorDiv>
+            )}
           </div>
         </div>
       </Link>
