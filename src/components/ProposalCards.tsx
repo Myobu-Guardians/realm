@@ -126,7 +126,9 @@ export function ProposalCards(props: ProposalCardsProps) {
               return (
                 <div
                   key={`proposal-${proposal._id}`}
-                  className={"mb-2 sm:m-2 flex flex-row justify-center"}
+                  className={
+                    "mb-2 sm:p-2 flex flex-row justify-center max-w-full"
+                  }
                 >
                   <ProposalCard proposal={proposal}></ProposalCard>
                 </div>
