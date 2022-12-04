@@ -143,7 +143,7 @@ export default function NotePanel(props: Props) {
   }, [markdown, tocEnabled, tocElement, previewElement, containerElement]);
 
   if (!feedsContainer.note) {
-    // Loading notes
+    // Loading note
     return (
       <div className="relative text-center text-2xl top-1/3">Loading...</div>
     );
@@ -270,7 +270,7 @@ export default function NotePanel(props: Props) {
         {/* Table of contents */}
         {tocEnabled && (
           <div
-            className={`absolute bg-[#2A303C] top-0 sm:w-[300px] w-full max-w-full h-full left-0 sm:sticky sm:top-[100px] p-2 sm:ml-4 z-50`}
+            className={`absolute bg-[#2A303C] top-0 sm:w-[300px] w-full max-w-full h-full left-0 sm:sticky sm:top-[100px] p-2 sm:ml-4 z-50 overflow-auto`}
           >
             <button
               className="btn btn-circle btn-sm float-right sm:hidden"

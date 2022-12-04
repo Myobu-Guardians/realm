@@ -9,13 +9,7 @@ import {
   generateForegroundColorBasedOnBackgroundColor,
   randomColorGenerator,
 } from "./lib/utils";
-import {
-  Link,
-  Navigate,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { RealmNote, Tab } from "./lib/types";
 import { ProfileCards } from "./components/ProfileCards";
 import { NoteCards } from "./components/NoteCards";
@@ -25,6 +19,14 @@ import toastr from "toastr";
 import NavBar from "./components/Navbar";
 import TagsModal from "./components/TagsModal";
 import { UserPanel } from "./components/UserPanel";
+import { ProposalCards } from "./components/ProposalCards";
+import millify from "millify";
+import Icon from "@mdi/react";
+import { mdiGold, mdiVote } from "@mdi/js";
+import ProposalEditor from "./components/ProposalEditor";
+import { MyobuDBProposal } from "myobu-protocol-client";
+import ProposalsContainer from "./containers/proposals";
+import ProposalPanel from "./components/ProposalPanel";
 
 interface AppProps {
   tab: Tab;
@@ -33,6 +35,8 @@ interface AppProps {
 function App(props: AppProps) {
   const appContainer = AppContainer.useContainer();
   const feedsContainer = FeedsContainer.useContainer();
+  const proposalsContainer = ProposalsContainer.useContainer();
+
   const params = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,6 +44,8 @@ function App(props: AppProps) {
   const [showUpdateNoteEditor, setShowUpdateNoteEditor] = useState(false);
   const [showMakeCommentEditor, setShowMakeCommentEditor] = useState(false);
   const [showEditTagsModal, setShowEditTagsModal] = useState(false);
+  const [showPublishProposalEditor, setShowPublishProposalEditor] =
+    useState(false);
   const [noteMarkdown, setNoteMarkdown] = useState("");
 
   const connectWalletButton = useMemo(() => {
@@ -136,6 +142,21 @@ function App(props: AppProps) {
     [feedsContainer.note, feedsContainer.makeComment]
   );
 
+  const publishProposal = useCallback(
+    async (proposal: MyobuDBProposal) => {
+      console.log("Publish proposal: ", proposal);
+      try {
+        await proposalsContainer.publishProposal(proposal);
+        setShowPublishProposalEditor(false);
+        toastr.success("Proposal published!");
+      } catch (error) {
+        console.error(error);
+        toastr.error("Error publishing proposal");
+      }
+    },
+    [proposalsContainer.publishProposal]
+  );
+
   useEffect(() => {
     appContainer.setParams(params);
     appContainer.setSearchParams(searchParams);
@@ -144,11 +165,7 @@ function App(props: AppProps) {
 
   return (
     <div className="App">
-      <NavBar
-        showPublishNoteEditor={() => {
-          setShowPublishNoteEditor(true);
-        }}
-      ></NavBar>
+      <NavBar></NavBar>
       {/** Main body */}
       <div
         className="drawer drawer-mobile text-left"
@@ -158,7 +175,13 @@ function App(props: AppProps) {
         <div className="drawer-content px-1 sm:px-2 box-border">
           {/** right panel */}
           {props.tab === Tab.MNS && <ProfileCards></ProfileCards>}
-          {props.tab === Tab.Notes && <NoteCards></NoteCards>}
+          {props.tab === Tab.Notes && (
+            <NoteCards
+              showPublishNoteEditor={() => {
+                setShowPublishNoteEditor(true);
+              }}
+            ></NoteCards>
+          )}
           {props.tab === Tab.Note && (
             <NotePanel
               showUpdateNoteEditor={(markdown) => {
@@ -186,6 +209,14 @@ function App(props: AppProps) {
               }}
             ></NotePanel>
           )}
+          {props.tab === Tab.Proposals && (
+            <ProposalCards
+              showProposalEditor={() => {
+                setShowPublishProposalEditor(true);
+              }}
+            ></ProposalCards>
+          )}
+          {props.tab === Tab.Proposal && <ProposalPanel></ProposalPanel>}
           {props.tab === Tab.User && <UserPanel></UserPanel>}
         </div>
         <div className="drawer-side">
@@ -198,30 +229,61 @@ function App(props: AppProps) {
                   labels={["MNS"]}
                   profile={appContainer.signerProfile}
                 ></MNSProfileCard>
-                {/*
-                  <div className="mt-4 px-2 sm:px-0">
-                    <div className="text-primary-content text-lg text-left uppercase font-bold mb-2">
-                      Your Realm
+                <div className="stats shadow mt-4 mx-auto bg-neutral scale-[90%] sm:scale-100">
+                  <div
+                    className="stat"
+                    title={(appContainer.signerVotingPower || "...").toString()}
+                  >
+                    <div className="stat-figure text-secondary">
+                      <Icon path={mdiGold} size={1}></Icon>
                     </div>
-                    <div>
-                      <Link to={`/${appContainer.signerProfile.name}.m/notes`}>
-                        <div
-                          className="badge badge-lg cursor-pointer"
-                          style={{
-                            backgroundColor:
-                              randomColorGenerator.generateColor(":Note"),
-                            color:
-                              generateForegroundColorBasedOnBackgroundColor(
-                                randomColorGenerator.generateColor(":Note")
-                              ),
-                          }}
-                        >
-                          :Note
-                        </div>
-                      </Link>
+                    <div className="stat-title">$MYOBU Balance</div>
+                    <div className="stat-value text-primary">
+                      {typeof appContainer.signerVotingPower === "undefined"
+                        ? "..."
+                        : millify(appContainer.signerVotingPower, {
+                            precision: 2,
+                          })}
+                    </div>
+                    <div className="stat-desc">
+                      {typeof appContainer.myobuPrice !== "undefined" &&
+                      typeof appContainer.signerBalance !== "undefined"
+                        ? `≈ ${(
+                            appContainer.myobuPrice * appContainer.signerBalance
+                          ).toFixed(2)} USD`
+                        : ""}
+                      <br></br>On both ETH & BNB<br></br>including staked
                     </div>
                   </div>
-                  */}
+
+                  <div
+                    className="stat"
+                    title={(appContainer.signerVotingPower || "...").toString()}
+                  >
+                    <div className="stat-figure text-secondary">
+                      <Icon path={mdiVote} size={1}></Icon>
+                    </div>
+                    <div className="stat-title">Voting power</div>
+                    <div className="stat-value text-primary">
+                      {typeof appContainer.signerVotingPower === "undefined"
+                        ? "..."
+                        : millify(appContainer.signerVotingPower, {
+                            precision: 2,
+                          })}
+                    </div>
+                    <div className="stat-desc">
+                      <a
+                        href="https://myobu.io/#/staking"
+                        target={"_blank"}
+                        rel={"noreferrer"}
+                        className="link"
+                      >
+                        Stake more
+                      </a>{" "}
+                      <br></br>to get more power
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="relative">
@@ -266,6 +328,23 @@ function App(props: AppProps) {
                     }}
                   >
                     :Note
+                  </div>
+                </label>
+                <label
+                  htmlFor="my-drawer"
+                  onClick={() => navigate(`/proposals`)}
+                >
+                  <div
+                    className="badge badge-lg cursor-pointer mr-2"
+                    style={{
+                      backgroundColor:
+                        randomColorGenerator.generateColor(":proposal"),
+                      color: generateForegroundColorBasedOnBackgroundColor(
+                        randomColorGenerator.generateColor(":proposal")
+                      ),
+                    }}
+                  >
+                    :Proposal
                   </div>
                 </label>
                 <label htmlFor="my-drawer" onClick={() => navigate("/mns")}>
@@ -333,6 +412,15 @@ function App(props: AppProps) {
             setShowEditTagsModal(false);
           }}
         ></TagsModal>
+      )}
+      {showPublishProposalEditor && (
+        <ProposalEditor
+          onClose={() => {
+            setShowPublishProposalEditor(false);
+          }}
+          confirmButtonText={"Publish"}
+          onConfirm={publishProposal}
+        ></ProposalEditor>
       )}
     </div>
   );

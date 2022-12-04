@@ -8,6 +8,7 @@ import AppContainer from "./containers/app";
 import FeedsContainer from "./containers/feeds";
 import "toastr/build/toastr.min.css";
 import { Tab } from "./lib/types";
+import ProposalsContainer from "./containers/proposals";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,15 +17,22 @@ root.render(
   //<React.StrictMode>
   <AppContainer.Provider>
     <FeedsContainer.Provider>
-      <RouterProvider
-        router={createHashRouter([
-          { path: "mns", element: <App tab={Tab.MNS} /> },
-          { path: "notes", element: <App tab={Tab.Notes} /> },
-          { path: "notes/:noteId", element: <App tab={Tab.Note} /> },
-          { path: ":username", element: <App tab={Tab.User}></App> },
-          { path: "/", element: <App tab={Tab.Notes} /> },
-        ])}
-      ></RouterProvider>
+      <ProposalsContainer.Provider>
+        <RouterProvider
+          router={createHashRouter([
+            { path: "mns", element: <App tab={Tab.MNS} /> },
+            { path: "notes", element: <App tab={Tab.Notes} /> },
+            { path: "notes/:noteId", element: <App tab={Tab.Note} /> },
+            { path: "proposals", element: <App tab={Tab.Proposals}></App> },
+            {
+              path: "proposals/:proposalId",
+              element: <App tab={Tab.Proposal}></App>,
+            },
+            { path: ":username", element: <App tab={Tab.User}></App> },
+            { path: "/", element: <App tab={Tab.Notes} /> },
+          ])}
+        ></RouterProvider>
+      </ProposalsContainer.Provider>
     </FeedsContainer.Provider>
   </AppContainer.Provider>
   //</React.StrictMode>

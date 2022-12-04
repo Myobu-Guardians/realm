@@ -5,9 +5,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../assets/images/logo.png";
 
-interface Props {
-  showPublishNoteEditor: () => void;
-}
+interface Props {}
 
 export default function NavBar(props: Props) {
   const appContainer = AppContainer.useContainer();
@@ -37,16 +35,6 @@ export default function NavBar(props: Props) {
           </Link>
         </div>
         <div className="flex-none">
-          {appContainer.signerProfile && (
-            <button
-              className="btn btn-primary mr-2"
-              onClick={props.showPublishNoteEditor}
-            >
-              <Icon path={mdiPencil} size={1} className={"mr-1"}></Icon> New
-              Note
-            </button>
-          )}
-
           {appContainer.signer && appContainer.signerAddress ? (
             <button
               className="btn btn-secondary"

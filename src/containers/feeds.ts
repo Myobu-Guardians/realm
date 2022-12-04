@@ -57,48 +57,17 @@ const FeedsContainer = createContainer(() => {
   const publishNote = useCallback(
     async (note: RealmNote) => {
       if (appContainer.client && appContainer.signerAddress) {
-        const result = await appContainer.client.db({
-          match: [
-            {
-              key: "author",
-              labels: ["MNS"],
-              props: {
-                _owner: appContainer.signerAddress,
-              },
-            },
-          ],
-          create: [
-            {
-              key: "note",
-              labels: ["Note"],
-              props: {
-                summary: note.summary,
-                images: note.images,
-                markdown: note.markdown || "",
-                ipfsHash: note.ipfsHash,
-                arweaveId: note.arweaveId || "",
-              },
-            },
-            {
-              key: "r",
-              type: "POSTED",
-              from: { key: "author" },
-              to: { key: "note" },
-            },
-            {
-              key: "r2",
-              type: "SUBSCRIBED_TO",
-              from: { key: "author" },
-              to: { key: "note" },
-            },
-          ],
-          return: [
-            "note",
-            { key: "author.displayName", as: "authorDisplayName" },
-            { key: "author.name", as: "authorName" },
-            { key: "author.avatar", as: "authorAvatar" },
-          ],
-        });
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "publishNote",
+          {
+            summary: note.summary,
+            images: note.images,
+            markdown: note.markdown || "",
+            ipfsHash: note.ipfsHash || "",
+            arweaveId: note.arweaveId || "",
+          }
+        );
         setNotes((notes) => [
           {
             ...result[0].note.props,
@@ -120,19 +89,8 @@ const FeedsContainer = createContainer(() => {
   const deleteNote = useCallback(
     async (noteId: string) => {
       if (appContainer.client && appContainer.signerAddress && noteId) {
-        await appContainer.client.db({
-          match: [
-            {
-              key: "note",
-              labels: ["Note"],
-              props: {
-                _id: noteId,
-                _owner: appContainer.signerAddress,
-              },
-            },
-          ],
-          detachDelete: ["note"],
-          return: ["note"],
+        await appContainer.client.applyDBEvent("Realm", "deleteNote", {
+          noteId,
         });
         setNotes((notes) => {
           if (notes) {
@@ -149,25 +107,17 @@ const FeedsContainer = createContainer(() => {
   const updateNote = useCallback(
     async (args: UpdateNoteArgs) => {
       if (appContainer.client && appContainer.signerAddress && args.noteId) {
-        const result = await appContainer.client.db({
-          match: [
-            {
-              key: "note",
-              labels: ["Note"],
-              props: {
-                _id: args.noteId,
-                _owner: appContainer.signerAddress,
-              },
-            },
-          ],
-          set: {
-            "note.ipfsHash": args.ipfsHash,
-            "note.summary": args.summary,
-            "note.images": args.images,
-            "note.markdown": args.markdown || "",
-          },
-          return: ["note"],
-        });
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "updateNote",
+          {
+            noteId: args.noteId,
+            summary: args.summary,
+            images: args.images,
+            markdown: args.markdown,
+            ipfsHash: args.ipfsHash,
+          }
+        );
         setNotes((notes) =>
           (notes || []).map((n) => {
             if (n._id === args.noteId) {
@@ -196,51 +146,14 @@ const FeedsContainer = createContainer(() => {
         note &&
         note._id
       ) {
-        const result = await appContainer.client.db({
-          match: [
-            {
-              key: "note",
-              labels: ["Note"],
-              props: {
-                _id: note._id,
-              },
-            },
-            {
-              key: "author",
-              labels: ["MNS"],
-              props: {
-                _owner: appContainer.signerAddress,
-              },
-            },
-          ],
-          create: [
-            {
-              key: "comment",
-              labels: ["Comment"],
-              props: {
-                markdown,
-              },
-            },
-            {
-              key: "r",
-              type: "POSTED",
-              from: { key: "author" },
-              to: { key: "comment" },
-            },
-            {
-              key: "r2",
-              type: "COMMENTED_ON",
-              from: { key: "comment" },
-              to: { key: "note" },
-            },
-          ],
-          return: [
-            "comment",
-            { key: "author.displayName", as: "authorDisplayName" },
-            { key: "author.name", as: "authorName" },
-            { key: "author.avatar", as: "authorAvatar" },
-          ],
-        });
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "makeComment",
+          {
+            noteId: note._id,
+            markdown,
+          }
+        );
         const comment: Comment = {
           ...(result[0].comment.props as any),
           author: {
@@ -266,36 +179,15 @@ const FeedsContainer = createContainer(() => {
         note &&
         note._id
       ) {
-        const result = await appContainer.client.db({
-          match: [
-            {
-              key: "note",
-              labels: ["Note"],
-              props: {
-                _id: note._id,
-                _owner: appContainer.signerAddress,
-              },
-            },
-          ],
-          merge: [
-            {
-              key: "tag",
-              labels: ["Tag"],
-              props: {
-                _owner: appContainer.signerAddress,
-                name: tagName,
-                sanitizedName: sanitizeTag(tagName),
-              },
-            },
-            {
-              key: "r",
-              type: "TAGGED_WITH",
-              from: { key: "note" },
-              to: { key: "tag" },
-            },
-          ],
-          return: ["tag"],
-        });
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "addTagToNote",
+          {
+            noteId: note._id,
+            tagName: tagName,
+            sanitizedTagName: sanitizeTag(tagName),
+          }
+        );
         console.log("addTagToNote: ", result);
         const tag = result[0].tag.props as any;
         setTags((tags) => [...tags, tag]);
@@ -314,31 +206,14 @@ const FeedsContainer = createContainer(() => {
         note &&
         note._id
       ) {
-        const result = await appContainer.client.db({
-          match: [
-            {
-              type: "TAGGED_WITH",
-              key: "r",
-              from: {
-                key: "note",
-                labels: ["Note"],
-                props: {
-                  _id: note._id,
-                },
-              },
-              to: {
-                key: "tag",
-                labels: ["Tag"],
-                props: {
-                  _owner: appContainer.signerAddress,
-                  name: tagName,
-                },
-              },
-            },
-          ],
-          delete: ["r"],
-          return: ["tag"],
-        });
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "deleteTagFromNote",
+          {
+            noteId: note._id,
+            tagName: tagName,
+          }
+        );
         console.log("deleteTagFromNote: ", result);
         setTags((tags) => {
           return tags.filter((t) => t.name !== tagName);
@@ -350,7 +225,7 @@ const FeedsContainer = createContainer(() => {
 
   const getTagsOfNote = useCallback(async (): Promise<Tag[]> => {
     if (appContainer.client && note && note._id && note._owner) {
-      const result = await appContainer.client.db({
+      const result = await appContainer.client.queryDB({
         match: [
           {
             type: "TAGGED_WITH",
@@ -397,7 +272,7 @@ const FeedsContainer = createContainer(() => {
     if (appContainer.client && appContainer.tab === "mns") {
       setIsLoadingMNSProfiles(true);
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               key: "profile",
@@ -452,7 +327,7 @@ const FeedsContainer = createContainer(() => {
 
       setIsLoadingNotes(true);
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               type: "POSTED",
@@ -487,12 +362,16 @@ const FeedsContainer = createContainer(() => {
           ],
           where: {
             "author._owner": {
-              $eq: "$note._owner",
+              $eq: {
+                $key: "note._owner",
+              },
             },
             ...(tag
               ? {
                   "note._owner": {
-                    $eq: "$tag._owner",
+                    $eq: {
+                      $key: "tag._owner",
+                    },
                   },
                 }
               : {}),
@@ -572,7 +451,7 @@ const FeedsContainer = createContainer(() => {
 
         // Fetch User Profile
         appContainer.client
-          .db({
+          .queryDB({
             match: [
               {
                 key: "profile",
@@ -607,7 +486,7 @@ const FeedsContainer = createContainer(() => {
       }
       setIsLoadingUserNotes(true);
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               key: "r",
@@ -699,7 +578,7 @@ const FeedsContainer = createContainer(() => {
   useEffect(() => {
     if (appContainer.client && userProfile) {
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               key: "r",
@@ -746,7 +625,7 @@ const FeedsContainer = createContainer(() => {
       setComments([]);
 
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               key: "note",
@@ -757,7 +636,9 @@ const FeedsContainer = createContainer(() => {
           ],
           where: {
             "author._owner": {
-              $eq: "$note._owner",
+              $eq: {
+                $key: "note._owner",
+              },
             },
           },
           return: [
@@ -797,7 +678,7 @@ const FeedsContainer = createContainer(() => {
   useEffect(() => {
     if (appContainer.client && note) {
       appContainer.client
-        .db({
+        .queryDB({
           match: [
             {
               key: "r1",
