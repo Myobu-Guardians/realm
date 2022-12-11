@@ -1,5 +1,5 @@
 import { renderPreview } from "@0xgg/echomd/preview";
-import { mdiChevronLeft, mdiPencil } from "@mdi/js";
+import { mdiChevronLeft, mdiComment } from "@mdi/js";
 import Icon from "@mdi/react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { MyobuDBProposalVoteType } from "myobu-protocol-client";
@@ -8,8 +8,13 @@ import { Link, useNavigate } from "react-router-dom";
 import AppContainer from "../containers/app";
 import ProposalsContainer from "../containers/proposals";
 import toastr from "toastr";
+import CommentCard from "./CommentCard";
 
-export default function ProposalPanel() {
+interface Props {
+  showMakeProposalCommentEditor: () => void;
+}
+
+export default function ProposalPanel(props: Props) {
   const navigate = useNavigate();
   const proposalsContainer = ProposalsContainer.useContainer();
   const appContainer = AppContainer.useContainer();
@@ -128,156 +133,188 @@ export default function ProposalPanel() {
               <span className="badge bg-green-800">Active</span>
             )}
         </div>
-        {/** Display the proposal */}
-        <div className="w-[800px] max-w-full mx-auto px-1 sm:px-0 py-2">
-          <div className="text-2xl font-bold">
-            {proposalsContainer.proposal.title}
-          </div>
-          <div
-            style={{
-              backgroundColor: "inherit",
-            }}
-            className={"preview w-[800px] max-w-full mt-5"}
-            ref={previewElement}
-          ></div>
-          <div className="mt-4">
-            <div className="card shadow-sm w-full bg-neutral">
-              <div className="card-body">
-                <h2 className="card-title flex flex-row justify-between">
-                  Votes{" "}
-                  <span className="badge badge-info badge-sm float-right">
-                    {proposalsContainer.proposal.voteType ===
-                      MyobuDBProposalVoteType.SINGLE_CHOICE && "Single choice"}
-                    {proposalsContainer.proposal.voteType ===
-                      MyobuDBProposalVoteType.MULTIPLE_CHOICE &&
-                      "Multiple choice"}
-                  </span>
-                </h2>
-                <p>
-                  Minimum voting power required to vote:{" "}
-                  <span className="font-bold text-orange-400">
-                    {proposalsContainer.proposal.minVotingPower}
-                  </span>
-                </p>
-                {/** Display choices */}
-                {proposalsContainer.proposal.choices.map((choice, index) => {
-                  const proposal = proposalsContainer.proposal;
-                  if (!proposal) return null;
+      </div>
+      {/** Display the proposal */}
+      <div className="w-[800px] max-w-full mx-auto px-1 sm:px-0 py-2 mb-5">
+        <div className="text-2xl font-bold">
+          {proposalsContainer.proposal.title}
+        </div>
+        <div
+          style={{
+            backgroundColor: "inherit",
+          }}
+          className={"preview w-[800px] max-w-full mt-5"}
+          ref={previewElement}
+        ></div>
+        <div className="mt-4">
+          <div className="card shadow-sm w-full bg-neutral">
+            <div className="card-body">
+              <h2 className="card-title flex flex-row justify-between">
+                Votes{" "}
+                <span className="badge badge-info badge-sm float-right">
+                  {proposalsContainer.proposal.voteType ===
+                    MyobuDBProposalVoteType.SINGLE_CHOICE && "Single choice"}
+                  {proposalsContainer.proposal.voteType ===
+                    MyobuDBProposalVoteType.MULTIPLE_CHOICE &&
+                    "Multiple choice"}
+                </span>
+              </h2>
+              <p>
+                Minimum voting power required to vote:{" "}
+                <span className="font-bold text-orange-400">
+                  {proposalsContainer.proposal.minVotingPower}
+                </span>
+              </p>
+              {/** Display choices */}
+              {proposalsContainer.proposal.choices.map((choice, index) => {
+                const proposal = proposalsContainer.proposal;
+                if (!proposal) return null;
 
-                  return (
-                    <div
-                      className={`flex flex-row w-full items-center justify-between mb-2 rounded-md border ${
-                        selectedChoices.includes(choice._id || "")
-                          ? "border-orange-400"
-                          : "border-gray-800"
-                      } cursor-pointer hover:bg-gray-800 relative`}
-                      key={`choice-${choice._id}`}
-                      onClick={() => {
-                        const proposal = proposalsContainer.proposal;
-                        if (proposal) {
-                          if (
-                            proposal.voteType ===
-                            MyobuDBProposalVoteType.SINGLE_CHOICE
-                          ) {
-                            // Single choice
-                            setSelectedChoices((choices) => {
-                              if (choices.includes(choice._id || "")) {
-                                return [];
-                              } else {
-                                return [choice._id || ""];
-                              }
-                            });
-                          } else if (
-                            proposal.voteType ===
-                            MyobuDBProposalVoteType.MULTIPLE_CHOICE
-                          ) {
-                            // Multiple choice
-                            setSelectedChoices((choices) => {
-                              if (choices.includes(choice._id || "")) {
-                                return choices.filter(
-                                  (c) => c !== (choice._id || "")
-                                );
-                              } else {
-                                return [...choices, choice._id || ""];
-                              }
-                            });
-                          }
-                        }
-                      }}
-                    >
-                      {/* bar */}
-                      <div
-                        style={{
-                          width: `${(
-                            (choice.totalVotingPower /
-                              proposal.totalVotingPower || 0) * 100
-                          ).toFixed(2)}%`,
-                        }}
-                        className={
-                          "absolute left-0 top-0 h-full rounded-md bg-[#262d38] hover:bg-transparent"
-                        }
-                      ></div>
-
-                      <div className="flex flex-row items-center relative flex-1 z-50">
-                        {/* description */}
-                        <div className="p-2 z-50 flex flex-row items-center">
-                          <div className="text-lg z-50">
-                            {choice.description}
-                          </div>
-                          <span className="text-gray-600 text-sm ml-2 z-50">
-                            {choice.totalVotingPower} voting power collected
-                          </span>
-                        </div>
-                      </div>
-                      <div className="font-bold text-gray-400 text-lg flex-none mr-4 w-[64px] text-right z-50">{`${(
-                        (choice.totalVotingPower / proposal.totalVotingPower ||
-                          0) * 100
-                      ).toFixed(2)}%`}</div>
-                    </div>
-                  );
-                })}
-                {/** Vote button */}
-                {Date.now() >= proposalsContainer.proposal.startDate &&
-                  Date.now() <= proposalsContainer.proposal.endDate && (
-                    <button
-                      className="btn btn-primary w-full"
-                      disabled={
-                        selectedChoices.length === 0 ||
-                        appContainer.signerVotingPower === undefined ||
-                        appContainer.signerVotingPower <
-                          proposalsContainer.proposal.minVotingPower
-                      }
-                      onClick={() => {
+                return (
+                  <div
+                    className={`flex flex-row w-full items-center justify-between mb-2 rounded-md border ${
+                      selectedChoices.includes(choice._id || "")
+                        ? "border-orange-400"
+                        : "border-gray-800"
+                    } cursor-pointer hover:bg-gray-800 relative`}
+                    key={`choice-${choice._id}`}
+                    onClick={() => {
+                      const proposal = proposalsContainer.proposal;
+                      if (proposal) {
                         if (
-                          selectedChoices.length &&
-                          proposalsContainer.proposal
+                          proposal.voteType ===
+                          MyobuDBProposalVoteType.SINGLE_CHOICE
                         ) {
-                          proposalsContainer
-                            .vote(selectedChoices)
-                            .then(() => {
-                              window.location.reload();
-                            })
-                            .catch(() => {
-                              toastr.error("Failed to vote");
-                            });
+                          // Single choice
+                          setSelectedChoices((choices) => {
+                            if (choices.includes(choice._id || "")) {
+                              return [];
+                            } else {
+                              return [choice._id || ""];
+                            }
+                          });
+                        } else if (
+                          proposal.voteType ===
+                          MyobuDBProposalVoteType.MULTIPLE_CHOICE
+                        ) {
+                          // Multiple choice
+                          setSelectedChoices((choices) => {
+                            if (choices.includes(choice._id || "")) {
+                              return choices.filter(
+                                (c) => c !== (choice._id || "")
+                              );
+                            } else {
+                              return [...choices, choice._id || ""];
+                            }
+                          });
                         }
+                      }
+                    }}
+                  >
+                    {/* bar */}
+                    <div
+                      style={{
+                        width: `${(
+                          (choice.totalVotingPower /
+                            proposal.totalVotingPower || 0) * 100
+                        ).toFixed(2)}%`,
                       }}
-                    >
-                      {!appContainer.signerAddress
-                        ? `Please connect wallet first`
-                        : (appContainer.signerVotingPower || 0) <
-                          proposalsContainer.proposal.minVotingPower
-                        ? `You voting power ${
-                            appContainer.signerVotingPower === undefined
-                              ? "..."
-                              : appContainer.signerVotingPower
-                          } is too low to vote`
-                        : `Vote`}
-                    </button>
-                  )}
-              </div>
+                      className={
+                        "absolute left-0 top-0 h-full rounded-md bg-[#262d38] hover:bg-transparent"
+                      }
+                    ></div>
+
+                    <div className="flex flex-row items-center relative flex-1 z-50">
+                      {/* description */}
+                      <div className="p-2 z-50 flex flex-row items-center">
+                        <div className="text-lg z-50">{choice.description}</div>
+                        <span className="text-gray-600 text-sm ml-2 z-50">
+                          {choice.totalVotingPower} voting power collected
+                          {typeof choice.totalVotesCount !== "undefined"
+                            ? ` (${choice.totalVotesCount} votes)`
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="font-bold text-gray-400 text-lg flex-none mr-4 w-[64px] text-right z-50">{`${(
+                      (choice.totalVotingPower / proposal.totalVotingPower ||
+                        0) * 100
+                    ).toFixed(2)}%`}</div>
+                  </div>
+                );
+              })}
+              {/** Vote button */}
+              {Date.now() >= proposalsContainer.proposal.startDate &&
+                Date.now() <= proposalsContainer.proposal.endDate && (
+                  <button
+                    className="btn btn-primary w-full"
+                    disabled={
+                      selectedChoices.length === 0 ||
+                      appContainer.signerVotingPower === undefined ||
+                      appContainer.signerVotingPower <
+                        proposalsContainer.proposal.minVotingPower
+                    }
+                    onClick={() => {
+                      if (
+                        selectedChoices.length &&
+                        proposalsContainer.proposal
+                      ) {
+                        proposalsContainer
+                          .vote(selectedChoices)
+                          .then(() => {
+                            window.location.reload();
+                          })
+                          .catch(() => {
+                            toastr.error("Failed to vote");
+                          });
+                      }
+                    }}
+                  >
+                    {!appContainer.signerAddress
+                      ? `Please connect wallet first`
+                      : (appContainer.signerVotingPower || 0) <
+                        proposalsContainer.proposal.minVotingPower
+                      ? `You voting power ${
+                          appContainer.signerVotingPower === undefined
+                            ? "..."
+                            : appContainer.signerVotingPower
+                        } is too low to vote`
+                      : `Vote`}
+                  </button>
+                )}
             </div>
           </div>
+        </div>
+      </div>
+      {/* Comments */}
+      {proposalsContainer.comments.length > 0 && (
+        <div className="w-[800px] max-w-full mx-auto">
+          <div className="mb-4 mt-10 text-lg font-bold border-l-4 pl-2 border-secondary">
+            Comments
+          </div>
+          {proposalsContainer.comments.map((comment) => {
+            return (
+              <div key={comment._id} className={"mb-8"}>
+                <CommentCard comment={comment}></CommentCard>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {/* Bottom banner */}
+      <div className="w-full bg-[#2A303C] sticky bottom-0 ">
+        <div className="w-[800px] max-w-full mx-auto flex flex-row items-center px-1 sm:px-0 py-2 border-t-2 border-gray-600">
+          <div className="flex-1">
+            {/* comment button */}
+            <button
+              className="btn btn-outline btn-ghost"
+              onClick={props.showMakeProposalCommentEditor}
+            >
+              <Icon path={mdiComment} size={1} className={"mr-2"}></Icon>
+              Leave a comment
+            </button>
+          </div>
+          <div className="flex-none"></div>
         </div>
       </div>
     </div>

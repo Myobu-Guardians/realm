@@ -42,10 +42,14 @@ function App(props: AppProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showPublishNoteEditor, setShowPublishNoteEditor] = useState(false);
   const [showUpdateNoteEditor, setShowUpdateNoteEditor] = useState(false);
-  const [showMakeCommentEditor, setShowMakeCommentEditor] = useState(false);
+  const [showMakeNoteCommentEditor, setShowMakeNoteCommentEditor] =
+    useState(false);
   const [showEditTagsModal, setShowEditTagsModal] = useState(false);
   const [showPublishProposalEditor, setShowPublishProposalEditor] =
     useState(false);
+  const [showMakeProposalCommentEditor, setShowMakeProposalCommentEditor] =
+    useState(false);
+
   const [noteMarkdown, setNoteMarkdown] = useState("");
 
   const connectWalletButton = useMemo(() => {
@@ -121,17 +125,17 @@ function App(props: AppProps) {
     ]
   );
 
-  const makeComment = useCallback(
+  const makeNoteComment = useCallback(
     async (markdown: string) => {
       if (!feedsContainer.note) {
         return alert("Note not found");
       } else if (!markdown) {
         return alert("Comment is empty");
       } else {
-        setShowMakeCommentEditor(false);
+        setShowMakeNoteCommentEditor(false);
         try {
           toastr.info(`Uploading comment...`);
-          await feedsContainer.makeComment(markdown);
+          await feedsContainer.makeNoteComment(markdown);
           toastr.success("Comment made!");
         } catch (error) {
           console.error(error);
@@ -139,7 +143,28 @@ function App(props: AppProps) {
         }
       }
     },
-    [feedsContainer.note, feedsContainer.makeComment]
+    [feedsContainer.note, feedsContainer.makeNoteComment]
+  );
+
+  const makeProposalComment = useCallback(
+    async (markdown: string) => {
+      if (!proposalsContainer.proposal) {
+        return alert("Proposal not found");
+      } else if (!markdown) {
+        return alert("Comment is empty");
+      } else {
+        setShowMakeProposalCommentEditor(false);
+        try {
+          toastr.info(`Uploading comment...`);
+          await proposalsContainer.makeProposalComment(markdown);
+          toastr.success("Comment made!");
+        } catch (error) {
+          console.error(error);
+          toastr.error("Error making comment");
+        }
+      }
+    },
+    [proposalsContainer.proposal, proposalsContainer.makeProposalComment]
   );
 
   const publishProposal = useCallback(
@@ -188,9 +213,9 @@ function App(props: AppProps) {
                 setNoteMarkdown(markdown);
                 setShowUpdateNoteEditor(true);
               }}
-              showMakeCommentEditor={() => {
+              showMakeNoteCommentEditor={() => {
                 if (appContainer.signerProfile) {
-                  setShowMakeCommentEditor(true);
+                  setShowMakeNoteCommentEditor(true);
                 } else {
                   if (!appContainer.signerAddress) {
                     toastr.error("Please connect wallet first");
@@ -216,7 +241,13 @@ function App(props: AppProps) {
               }}
             ></ProposalCards>
           )}
-          {props.tab === Tab.Proposal && <ProposalPanel></ProposalPanel>}
+          {props.tab === Tab.Proposal && (
+            <ProposalPanel
+              showMakeProposalCommentEditor={() => {
+                setShowMakeProposalCommentEditor(true);
+              }}
+            ></ProposalPanel>
+          )}
           {props.tab === Tab.User && <UserPanel></UserPanel>}
         </div>
         <div className="drawer-side">
@@ -239,9 +270,9 @@ function App(props: AppProps) {
                     </div>
                     <div className="stat-title">$MYOBU Balance</div>
                     <div className="stat-value text-primary">
-                      {typeof appContainer.signerVotingPower === "undefined"
+                      {typeof appContainer.signerBalance === "undefined"
                         ? "..."
-                        : millify(appContainer.signerVotingPower, {
+                        : millify(appContainer.signerBalance, {
                             precision: 2,
                           })}
                     </div>
@@ -394,15 +425,15 @@ function App(props: AppProps) {
           onConfirm={updateNote}
         ></Editor>
       )}
-      {showMakeCommentEditor && (
+      {showMakeNoteCommentEditor && (
         <Editor
           onClose={() => {
-            setShowMakeCommentEditor(false);
+            setShowMakeNoteCommentEditor(false);
           }}
           noteMarkdown={""}
           placeholder={"Leave a comment"}
           confirmButtonText={"Comment"}
-          onConfirm={makeComment}
+          onConfirm={makeNoteComment}
           disableInitialText={true}
         ></Editor>
       )}
@@ -421,6 +452,18 @@ function App(props: AppProps) {
           confirmButtonText={"Publish"}
           onConfirm={publishProposal}
         ></ProposalEditor>
+      )}
+      {showMakeProposalCommentEditor && (
+        <Editor
+          onClose={() => {
+            setShowMakeProposalCommentEditor(false);
+          }}
+          noteMarkdown={""}
+          placeholder={"Leave a comment"}
+          confirmButtonText={"Comment"}
+          onConfirm={makeProposalComment}
+          disableInitialText={true}
+        ></Editor>
       )}
     </div>
   );

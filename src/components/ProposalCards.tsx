@@ -43,6 +43,9 @@ function ProposalCard({ proposal }: ProposalCardProps) {
                     <div className="text-lg z-50">{choice.description}</div>
                     <span className="text-gray-600 text-sm ml-2">
                       {choice.totalVotingPower} voting power collected
+                      {typeof choice.totalVotesCount !== "undefined"
+                        ? ` (${choice.totalVotesCount} votes)`
+                        : ""}
                     </span>
                   </div>
                 </div>
@@ -66,7 +69,7 @@ function ProposalCard({ proposal }: ProposalCardProps) {
                     {Date.now() > proposal.endDate && " ago"}
                   </span>
                   {Date.now() > proposal.endDate && (
-                    <span className="badge bg-red-500">Ended</span>
+                    <span className="badge bg-red-500 text-white">Ended</span>
                   )}
                   {Date.now() < proposal.startDate && (
                     <span className="badge bg-blue-500">Upcoming</span>

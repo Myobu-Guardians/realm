@@ -208,7 +208,11 @@ export default function ProposalEditor(props: Props) {
               onClick={() => {
                 setChoices((choices) => [
                   ...choices,
-                  { description: choiceDescription, totalVotingPower: 0 },
+                  {
+                    description: choiceDescription,
+                    totalVotingPower: 0,
+                    totalVotesCount: 0,
+                  },
                 ]);
                 setChoiceDescription("");
               }}

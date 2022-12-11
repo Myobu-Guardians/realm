@@ -17,12 +17,12 @@ import {
   mdiTrashCanOutline,
 } from "@mdi/js";
 import toastr from "toastr";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CommentCard from "./CommentCard";
 
 interface Props {
   showUpdateNoteEditor: (markdown: string) => void;
-  showMakeCommentEditor: () => void;
+  showMakeNoteCommentEditor: () => void;
   showEditTagsModal: () => void;
 }
 
@@ -341,7 +341,7 @@ export default function NotePanel(props: Props) {
             {/* comment button */}
             <button
               className="btn btn-outline btn-ghost"
-              onClick={props.showMakeCommentEditor}
+              onClick={props.showMakeNoteCommentEditor}
             >
               <Icon path={mdiComment} size={1} className={"mr-2"}></Icon>
               Leave a comment
