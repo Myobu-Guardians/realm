@@ -297,11 +297,13 @@ function App(props: AppProps) {
                     </div>
                     <div className="stat-title">$MYOBU Balance</div>
                     <div className="stat-value text-primary">
-                      {typeof appContainer.signerBalance === "undefined"
-                        ? "..."
-                        : millify(appContainer.signerBalance, {
-                            precision: 2,
-                          })}
+                      {typeof appContainer.signerBalance === "undefined" ? (
+                        <span className="animate-pulse">...</span>
+                      ) : (
+                        millify(appContainer.signerBalance, {
+                          precision: 2,
+                        })
+                      )}
                     </div>
                     <div className="stat-desc">
                       {typeof appContainer.myobuPrice !== "undefined" &&
@@ -323,11 +325,13 @@ function App(props: AppProps) {
                     </div>
                     <div className="stat-title">Voting power</div>
                     <div className="stat-value text-primary">
-                      {typeof appContainer.signerVotingPower === "undefined"
-                        ? "..."
-                        : millify(appContainer.signerVotingPower, {
-                            precision: 2,
-                          })}
+                      {typeof appContainer.signerVotingPower === "undefined" ? (
+                        <span className="animate-pulse">...</span>
+                      ) : (
+                        millify(appContainer.signerVotingPower, {
+                          precision: 2,
+                        })
+                      )}
                     </div>
                     <div className="stat-desc">
                       <a
