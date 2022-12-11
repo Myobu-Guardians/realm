@@ -128,7 +128,10 @@ const AppContainer = createContainer(() => {
           setSignerAddress(signerAddress);
         };
 
-        ethereum.on("accountsChanged", setSigner_);
+        ethereum.on("accountsChanged", () => {
+          setSigner_();
+          window.location.reload();
+        });
         setSigner_();
 
         ethereum.on("chainChanged", async function () {

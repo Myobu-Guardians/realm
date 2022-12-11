@@ -116,23 +116,27 @@ export default function ProposalPanel(props: Props) {
         </div>
         <div className="w-[800px] max-w-full mx-auto px-1 sm:px-0 py-2">
           <span className="mr-2">
-            {Date.now() <= proposalsContainer.proposal.endDate
-              ? `Closes in `
-              : `Closed `}{" "}
-            {formatDistanceToNowStrict(
-              new Date(proposalsContainer.proposal.endDate || 0)
-            )}
-            {Date.now() > proposalsContainer.proposal.endDate && " ago"}
+            {Date.now() < proposalsContainer.proposal.startDate
+              ? `Starts in ${formatDistanceToNowStrict(
+                  new Date(proposalsContainer.proposal.startDate)
+                )}`
+              : Date.now() < proposalsContainer.proposal.endDate
+              ? `Closes in ${formatDistanceToNowStrict(
+                  new Date(proposalsContainer.proposal.endDate || 0)
+                )}`
+              : `Closed ${formatDistanceToNowStrict(
+                  new Date(proposalsContainer.proposal.endDate || 0)
+                )} ago`}
           </span>
           {Date.now() > proposalsContainer.proposal.endDate && (
-            <span className="badge bg-red-500">Ended</span>
+            <span className="badge bg-red-500 text-white">Ended</span>
           )}
           {Date.now() < proposalsContainer.proposal.startDate && (
-            <span className="badge bg-blue-500">Upcoming</span>
+            <span className="badge bg-blue-500 text-white">Upcoming</span>
           )}
           {Date.now() > proposalsContainer.proposal.startDate &&
             Date.now() < proposalsContainer.proposal.endDate && (
-              <span className="badge bg-green-800">Active</span>
+              <span className="badge bg-green-800 text-white">Active</span>
             )}
         </div>
       </div>
@@ -246,12 +250,24 @@ export default function ProposalPanel(props: Props) {
                 );
               })}
               {/** Vote button */}
-              {Date.now() >= proposalsContainer.proposal.startDate &&
+              {!appContainer.signerProfile ? (
+                <a
+                  href="https://protocol.myobu.io/#/mns"
+                  target={"_blank"}
+                  rel={"noreferrer"}
+                >
+                  <button className="btn btn-info w-full">
+                    Please register for your MNS profile to vote
+                  </button>
+                </a>
+              ) : (
+                Date.now() >= proposalsContainer.proposal.startDate &&
                 Date.now() <= proposalsContainer.proposal.endDate && (
                   <button
                     className="btn btn-primary w-full"
                     disabled={
                       selectedChoices.length === 0 ||
+                      !appContainer.signerProfile ||
                       appContainer.signerVotingPower === undefined ||
                       appContainer.signerVotingPower <
                         proposalsContainer.proposal.minVotingPower
@@ -274,6 +290,8 @@ export default function ProposalPanel(props: Props) {
                   >
                     {!appContainer.signerAddress
                       ? `Please connect wallet first`
+                      : typeof appContainer.signerVotingPower === "undefined"
+                      ? `Loading your voting power...`
                       : (appContainer.signerVotingPower || 0) <
                         proposalsContainer.proposal.minVotingPower
                       ? `You voting power ${
@@ -283,7 +301,8 @@ export default function ProposalPanel(props: Props) {
                         } is too low to vote`
                       : `Vote`}
                   </button>
-                )}
+                )
+              )}
             </div>
           </div>
         </div>

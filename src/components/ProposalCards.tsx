@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import AppContainer from "../containers/app";
 import ProposalsContainer from "../containers/proposals";
 import AuthorDiv from "./AuthorDiv";
+import toastr from "toastr";
+
 interface ProposalCardProps {
   proposal: MyobuDBProposal;
 }
@@ -64,19 +66,31 @@ function ProposalCard({ proposal }: ProposalCardProps) {
               rightContent={
                 <div className="flex">
                   <span className="badge">
-                    {Date.now() <= proposal.endDate ? `Closes in ` : `Closed `}{" "}
-                    {formatDistanceToNowStrict(new Date(proposal.endDate || 0))}
-                    {Date.now() > proposal.endDate && " ago"}
+                    {Date.now() < proposal.startDate
+                      ? `Starts in ${formatDistanceToNowStrict(
+                          new Date(proposal.startDate)
+                        )}`
+                      : Date.now() < proposal.endDate
+                      ? `Closes in ${formatDistanceToNowStrict(
+                          new Date(proposal.endDate || 0)
+                        )}`
+                      : `Closed ${formatDistanceToNowStrict(
+                          new Date(proposal.endDate || 0)
+                        )} ago`}
                   </span>
                   {Date.now() > proposal.endDate && (
                     <span className="badge bg-red-500 text-white">Ended</span>
                   )}
                   {Date.now() < proposal.startDate && (
-                    <span className="badge bg-blue-500">Upcoming</span>
+                    <span className="badge bg-blue-500 text-white">
+                      Upcoming
+                    </span>
                   )}
                   {Date.now() > proposal.startDate &&
                     Date.now() < proposal.endDate && (
-                      <span className="badge bg-green-800">Active</span>
+                      <span className="badge bg-green-800 text-white">
+                        Active
+                      </span>
                     )}
                 </div>
               }
@@ -109,7 +123,7 @@ export function ProposalCards(props: ProposalCardsProps) {
               toastr.error("Please connect your wallet first.");
             } else {
               toastr.error(
-                "Please register for MNS (Myobu Name Service) to make comment"
+                "Please register for MNS (Myobu Name Service) to make proposal"
               );
               setTimeout(() => {
                 window.open(`https://protocol.myobu.io`, "_self");

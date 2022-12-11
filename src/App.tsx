@@ -364,7 +364,7 @@ function App(props: AppProps) {
                       href="https://protocol.myobu.io/#/mns"
                       className="btn btn-secondary"
                     >
-                      Register for your account
+                      Register for your MNS profile
                     </a>
                   ) : (
                     connectWalletButton
