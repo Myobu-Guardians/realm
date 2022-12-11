@@ -138,7 +138,7 @@ const FeedsContainer = createContainer(() => {
     [appContainer.client, appContainer.signerAddress]
   );
 
-  const makeComment = useCallback(
+  const makeNoteComment = useCallback(
     async (markdown: string) => {
       if (
         appContainer.client &&
@@ -148,7 +148,7 @@ const FeedsContainer = createContainer(() => {
       ) {
         const result = await appContainer.client.applyDBEvent(
           "Realm",
-          "makeComment",
+          "makeNoteComment",
           {
             noteId: note._id,
             markdown,
@@ -162,7 +162,7 @@ const FeedsContainer = createContainer(() => {
             avatar: result[0].authorAvatar || "",
           } as any,
         };
-        console.log("makeComment: ", comment);
+        console.log("makeNoteComment: ", comment);
         setComments((comments) => [...comments, comment]);
       } else {
         throw new Error("Client is not ready");
@@ -736,7 +736,7 @@ const FeedsContainer = createContainer(() => {
     publishNote,
     deleteNote,
     updateNote,
-    makeComment,
+    makeNoteComment,
     addTagToNote,
     deleteTagFromNote,
     getTagsOfNote,

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import toastr from "toastr";
 import AppContainer from "./app";
-import { Tab } from "../lib/types";
+import { Comment, Tab } from "../lib/types";
 
 const itemsPerPage = 20;
 
@@ -32,6 +32,7 @@ const ProposalsContainer = createContainer(() => {
     undefined
   );
   const [userVotes, setUserVotes] = useState<MyobuDBProposalVote[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const publishProposal = useCallback(
     async (proposal: MyobuDBProposal) => {
@@ -62,6 +63,46 @@ const ProposalsContainer = createContainer(() => {
     [appContainer.client, appContainer.signerBalance, proposalACL]
   );
 
+  const updateProposal = useCallback(
+    async (newProposal: MyobuDBProposal) => {
+      if (appContainer.client) {
+        const updatedProposal = await appContainer.client.updateProposal(
+          proposal?._id ?? newProposal._id ?? "",
+          {
+            title: newProposal.title,
+            description: newProposal.description,
+            minVotingPower: newProposal.minVotingPower,
+            startDate: newProposal.startDate,
+            endDate: newProposal.endDate,
+          }
+        );
+        if (updatedProposal && updatedProposal._id) {
+          setProposals((proposals) => {
+            return proposals?.map((proposal) => {
+              if (proposal._id === updatedProposal._id) {
+                return updatedProposal;
+              }
+              return proposal;
+            });
+          });
+        }
+      }
+    },
+    [appContainer.client, proposal]
+  );
+
+  const addProposalChoice = useCallback(
+    async (choiceDescription: string) => {
+      if (appContainer.client) {
+        await appContainer.client.addProposalChoice(
+          proposal?._id ?? "",
+          choiceDescription
+        );
+      }
+    },
+    [appContainer.client, proposal]
+  );
+
   const vote = useCallback(
     async (choiceIds: string[]) => {
       if (proposal?._id && appContainer.client) {
@@ -76,6 +117,38 @@ const ProposalsContainer = createContainer(() => {
     setProposalsPage((page) => page + 1);
   }, []);
 
+  const makeProposalComment = useCallback(
+    async (markdown: string) => {
+      if (
+        appContainer.client &&
+        appContainer.signerAddress &&
+        proposal &&
+        proposal._id
+      ) {
+        const result = await appContainer.client.applyDBEvent(
+          "Realm",
+          "makeProposalComment",
+          {
+            proposalId: proposal._id,
+            markdown,
+          }
+        );
+        const comment: Comment = {
+          ...(result[0].comment.props as any),
+          author: {
+            name: result[0].authorName,
+            displayName: result[0].authorDisplayName,
+            avatar: result[0].authorAvatar || "",
+          } as any,
+        };
+        console.log("makeProposalComment: ", comment);
+        setComments((comments) => [...comments, comment]);
+      } else {
+        throw new Error("Client is not ready");
+      }
+    },
+    [appContainer.client, appContainer.signerAddress, proposal]
+  );
   useEffect(() => {
     if (
       appContainer.client &&
@@ -173,6 +246,7 @@ const ProposalsContainer = createContainer(() => {
       appContainer.params.proposalId
     ) {
       setProposal(undefined);
+      setComments([]);
 
       appContainer.client
         .queryDB({
@@ -265,6 +339,65 @@ const ProposalsContainer = createContainer(() => {
     proposal,
   ]);
 
+  // Fetch proposal comments
+  // TODO: Pagination
+  useEffect(() => {
+    if (appContainer.client && proposal) {
+      appContainer.client
+        .queryDB({
+          match: [
+            {
+              key: "r1",
+              type: "POSTED",
+              from: {
+                key: "author",
+              },
+              to: {
+                key: "comment",
+              },
+            },
+            {
+              key: "r2",
+              type: "COMMENTED_ON",
+              from: {
+                key: "comment",
+              },
+              to: {
+                key: "proposal",
+                labels: ["Proposal"],
+                props: {
+                  _id: proposal._id || "",
+                },
+              },
+            },
+          ],
+          orderBy: {
+            "comment._createdAt": MyobuDBOrder.ASC,
+          },
+          return: [
+            "comment",
+            { key: "author.displayName", as: "authorDisplayName" },
+            { key: "author.name", as: "authorName" },
+            { key: "author.avatar", as: "authorAvatar" },
+          ],
+        })
+        .then((result) => {
+          const comments = result.map((x) => {
+            return {
+              ...x.comment.props,
+              author: {
+                name: x.authorName,
+                displayName: x.authorDisplayName,
+                avatar: x.authorAvatar || "",
+              },
+            };
+          });
+          console.log("fetch comments: ", comments);
+          setComments(comments as any);
+        });
+    }
+  }, [proposal, appContainer.client]);
+
   return {
     proposals,
     hasMoreProposals,
@@ -272,9 +405,13 @@ const ProposalsContainer = createContainer(() => {
     proposalACL,
     proposal,
     userVotes,
+    comments,
     publishProposal,
     vote,
     loadMoreProposals,
+    makeProposalComment,
+    updateProposal,
+    addProposalChoice,
   };
 });
 

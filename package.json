@@ -22,7 +22,7 @@
     "ipfs-api": "^26.1.2",
     "is_js": "^0.9.0",
     "millify": "^5.0.1",
-    "myobu-protocol-client": "^0.0.8",
+    "myobu-protocol-client": "^0.0.9",
     "nft.storage": "^7.0.0",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createContainer } from "unstated-next";
 import { MNSProfile, Tab, WalletConnectMethod } from "../lib/types";
 import { NFTStorage } from "nft.storage";
-import { Params, useSearchParams } from "react-router-dom";
+import { Params } from "react-router-dom";
 import { MyobuProtocolClient } from "myobu-protocol-client";
 
 interface ArweaveAddArgs {
@@ -128,7 +128,10 @@ const AppContainer = createContainer(() => {
           setSignerAddress(signerAddress);
         };
 
-        ethereum.on("accountsChanged", setSigner_);
+        ethereum.on("accountsChanged", () => {
+          setSigner_();
+          window.location.reload();
+        });
         setSigner_();
 
         ethereum.on("chainChanged", async function () {
@@ -208,6 +211,7 @@ const AppContainer = createContainer(() => {
       client
         .getBalance(signerAddress)
         .then((balance) => {
+          console.log("balance: ", balance);
           setSignerBalance(balance);
         })
         .catch(() => {
