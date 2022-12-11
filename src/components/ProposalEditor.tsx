@@ -1,12 +1,12 @@
 import {
   mdiCalendar,
+  mdiChevronDown,
   mdiClose,
   mdiLanguageMarkdown,
   mdiPublish,
 } from "@mdi/js";
 import Icon from "@mdi/react";
 import {
-  MyobuDBLabelACL,
   MyobuDBProposal,
   MyobuDBProposalChoice,
   MyobuDBProposalVoteType,
@@ -21,22 +21,34 @@ interface Props {
   modalTitle?: string;
   confirmButtonText: string;
   onConfirm: (proposal: MyobuDBProposal) => void;
+  proposalToUpdate?: MyobuDBProposal;
 }
 
 export default function ProposalEditor(props: Props) {
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [minVotingPower, setMinVotingPower] = useState<number>(1);
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date(Date.now() + 86400000));
-  const [voteType, setVoteType] = useState<MyobuDBProposalVoteType>(
-    MyobuDBProposalVoteType.SINGLE_CHOICE
+  const [title, setTitle] = useState<string>(
+    props.proposalToUpdate?.title ?? ""
   );
-
+  const [description, setDescription] = useState<string>(
+    props.proposalToUpdate?.description ?? ""
+  );
+  const [minVotingPower, setMinVotingPower] = useState<number>(
+    props.proposalToUpdate?.minVotingPower ?? 1
+  );
+  const [startDate, setStartDate] = useState<Date>(
+    props.proposalToUpdate?.startDate
+      ? new Date(props.proposalToUpdate?.startDate)
+      : new Date()
+  );
+  const [endDate, setEndDate] = useState<Date>(
+    props.proposalToUpdate?.endDate
+      ? new Date(props.proposalToUpdate?.endDate)
+      : new Date(Date.now() + 86400000)
+  );
+  const [voteType, setVoteType] = useState<MyobuDBProposalVoteType>(
+    props.proposalToUpdate?.voteType ?? MyobuDBProposalVoteType.SINGLE_CHOICE
+  );
   const [choiceDescription, setChoiceDescription] = useState<string>("");
   const [choices, setChoices] = useState<MyobuDBProposalChoice[]>([]);
-
-  const appContainer = AppContainer.useContainer();
   const proposalsContainer = ProposalsContainer.useContainer();
 
   return (
@@ -156,6 +168,11 @@ export default function ProposalEditor(props: Props) {
               calendarIcon={<Icon path={mdiCalendar} size={1}></Icon>}
               clearIcon={<Icon path={mdiClose} size={1}></Icon>}
               closeWidgets={false}
+              disabled={
+                // Already started
+                props.proposalToUpdate &&
+                Date.now() > props.proposalToUpdate.startDate
+              }
             />
           </div>
           <div className="form-control">
@@ -172,27 +189,34 @@ export default function ProposalEditor(props: Props) {
               calendarIcon={<Icon path={mdiCalendar} size={1}></Icon>}
               clearIcon={<Icon path={mdiClose} size={1}></Icon>}
               closeWidgets={false}
+              disabled={
+                // Already ended
+                props.proposalToUpdate &&
+                Date.now() > props.proposalToUpdate.endDate
+              }
             />
           </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Vote type</span>
-            </label>
-            <select
-              className="select select-bordered w-full max-w-xs"
-              value={voteType}
-              onChange={(e) => {
-                setVoteType(e.target.value as any);
-              }}
-            >
-              <option value={MyobuDBProposalVoteType.SINGLE_CHOICE}>
-                Single choice
-              </option>
-              <option value={MyobuDBProposalVoteType.MULTIPLE_CHOICE}>
-                Multiple choice
-              </option>
-            </select>
-          </div>
+          {!props.proposalToUpdate && (
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Vote type</span>
+              </label>
+              <select
+                className="select select-bordered w-full max-w-xs"
+                value={voteType}
+                onChange={(e) => {
+                  setVoteType(e.target.value as any);
+                }}
+              >
+                <option value={MyobuDBProposalVoteType.SINGLE_CHOICE}>
+                  Single choice
+                </option>
+                <option value={MyobuDBProposalVoteType.MULTIPLE_CHOICE}>
+                  Multiple choice
+                </option>
+              </select>
+            </div>
+          )}
 
           {/* Add choices */}
           <div className="divider font-bold text-lg">Choices</div>
@@ -228,7 +252,6 @@ export default function ProposalEditor(props: Props) {
             >
               <div className="card-body px-4 py-4 flex flex-row justify-between">
                 <div className={"text-base mr-2 text-left break-words"}>
-                  <span className={"text-info"}>{index + 1}.</span>{" "}
                   {choice.description}
                 </div>
                 <button
@@ -245,6 +268,29 @@ export default function ProposalEditor(props: Props) {
               </div>
             </div>
           ))}
+          {props.proposalToUpdate ? (
+            <div>
+              <div className="divider">
+                <Icon path={mdiChevronDown} size={1}></Icon>
+                Current choices
+              </div>
+            </div>
+          ) : null}
+          {/* Display choices of proposalToUpdate */}
+          <div>
+            {props.proposalToUpdate?.choices.map((choice, index) => (
+              <div
+                className="mt-2 card card-bordered border-gray-500"
+                key={`choice-${choice._id}`}
+              >
+                <div className="card-body px-4 py-4 flex flex-row justify-between">
+                  <div className={"text-base mr-2 text-left break-words"}>
+                    {choice.description}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

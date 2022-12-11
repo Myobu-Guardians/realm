@@ -63,6 +63,46 @@ const ProposalsContainer = createContainer(() => {
     [appContainer.client, appContainer.signerBalance, proposalACL]
   );
 
+  const updateProposal = useCallback(
+    async (newProposal: MyobuDBProposal) => {
+      if (appContainer.client) {
+        const updatedProposal = await appContainer.client.updateProposal(
+          proposal?._id ?? newProposal._id ?? "",
+          {
+            title: newProposal.title,
+            description: newProposal.description,
+            minVotingPower: newProposal.minVotingPower,
+            startDate: newProposal.startDate,
+            endDate: newProposal.endDate,
+          }
+        );
+        if (updatedProposal && updatedProposal._id) {
+          setProposals((proposals) => {
+            return proposals?.map((proposal) => {
+              if (proposal._id === updatedProposal._id) {
+                return updatedProposal;
+              }
+              return proposal;
+            });
+          });
+        }
+      }
+    },
+    [appContainer.client, proposal]
+  );
+
+  const addProposalChoice = useCallback(
+    async (choiceDescription: string) => {
+      if (appContainer.client) {
+        await appContainer.client.addProposalChoice(
+          proposal?._id ?? "",
+          choiceDescription
+        );
+      }
+    },
+    [appContainer.client, proposal]
+  );
+
   const vote = useCallback(
     async (choiceIds: string[]) => {
       if (proposal?._id && appContainer.client) {
@@ -370,6 +410,8 @@ const ProposalsContainer = createContainer(() => {
     vote,
     loadMoreProposals,
     makeProposalComment,
+    updateProposal,
+    addProposalChoice,
   };
 });
 

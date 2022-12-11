@@ -1,5 +1,5 @@
 import { renderPreview } from "@0xgg/echomd/preview";
-import { mdiChevronLeft, mdiComment } from "@mdi/js";
+import { mdiChevronLeft, mdiComment, mdiPencil } from "@mdi/js";
 import Icon from "@mdi/react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { MyobuDBProposalVoteType } from "myobu-protocol-client";
@@ -11,6 +11,7 @@ import toastr from "toastr";
 import CommentCard from "./CommentCard";
 
 interface Props {
+  showUpdateProposalEditor: () => void;
   showMakeProposalCommentEditor: () => void;
 }
 
@@ -95,20 +96,21 @@ export default function ProposalPanel(props: Props) {
             </div>
             <div className="flex flex-row items-center">
               {/* buttons */}
-              {/*
-              // TODO: support edit
-              {proposalsContainer.proposal._owner ===
-                appContainer.signerAddress && (
-                <>
-                  <button
-                    className="btn btn-circle btn-success btn-sm ml-2"
-                    title={"Edit proposal"}
-                  >
-                    <Icon className="" path={mdiPencil} size={1}></Icon>
-                  </button>
-                </>
-              )}
-                */}
+              {
+                // TODO: support edit
+                proposalsContainer.proposal._owner ===
+                  appContainer.signerAddress && (
+                  <>
+                    <button
+                      className="btn btn-circle btn-success btn-sm ml-2"
+                      title={"Edit proposal"}
+                      onClick={props.showUpdateProposalEditor}
+                    >
+                      <Icon className="" path={mdiPencil} size={1}></Icon>
+                    </button>
+                  </>
+                )
+              }
             </div>
           </div>
         </div>

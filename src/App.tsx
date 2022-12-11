@@ -49,6 +49,8 @@ function App(props: AppProps) {
     useState(false);
   const [showMakeProposalCommentEditor, setShowMakeProposalCommentEditor] =
     useState(false);
+  const [showUpdateProposalEditor, setShowUpdateProposalEditor] =
+    useState(false);
 
   const [noteMarkdown, setNoteMarkdown] = useState("");
 
@@ -182,6 +184,28 @@ function App(props: AppProps) {
     [proposalsContainer.publishProposal]
   );
 
+  const updateProposal = useCallback(
+    async (newProposal: MyobuDBProposal) => {
+      const newChoices = newProposal.choices || [];
+      // Update proposal
+      try {
+        await proposalsContainer.updateProposal(newProposal);
+
+        for (let i = 0; i < newChoices.length; i++) {
+          const choice = newChoices[i];
+          await proposalsContainer.addProposalChoice(choice.description);
+        }
+        setShowUpdateProposalEditor(false);
+        toastr.success("Proposal updated!");
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+        toastr.error("Error updating proposal");
+      }
+    },
+    [proposalsContainer.publishProposal, proposalsContainer.updateProposal]
+  );
+
   useEffect(() => {
     appContainer.setParams(params);
     appContainer.setSearchParams(searchParams);
@@ -245,6 +269,9 @@ function App(props: AppProps) {
             <ProposalPanel
               showMakeProposalCommentEditor={() => {
                 setShowMakeProposalCommentEditor(true);
+              }}
+              showUpdateProposalEditor={() => {
+                setShowUpdateProposalEditor(true);
               }}
             ></ProposalPanel>
           )}
@@ -464,6 +491,16 @@ function App(props: AppProps) {
           onConfirm={makeProposalComment}
           disableInitialText={true}
         ></Editor>
+      )}
+      {showUpdateProposalEditor && proposalsContainer.proposal && (
+        <ProposalEditor
+          onClose={() => {
+            setShowUpdateProposalEditor(false);
+          }}
+          confirmButtonText={"Update"}
+          onConfirm={updateProposal}
+          proposalToUpdate={proposalsContainer.proposal}
+        ></ProposalEditor>
       )}
     </div>
   );
